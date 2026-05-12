@@ -1,0 +1,90 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AWS_REGION:     us-west-1
+  ECR_REPOSITORY: gto-trainer
+  ECS_CLUSTER:    GtoTrainerStack-GtoCluster
+  ECS_SERVICE:    GtoTrainerStack-GtoService
+  CONTAINER_NAME: GtoContainer
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run tests
+        env:
+          DATABASE_URL: sqlite:///test.db
+          JWT_SECRET:   test-secret
+          SECRET_KEY:   test-key
+        run: |
+          python -c "
+          import sys, types, hashlib
+          bcrypt_mock = types.ModuleType('bcrypt')
+          bcrypt_mock.hashpw = lambda pw, salt: hashlib.sha256(pw).hexdigest().encode()
+          bcrypt_mock.gensalt = lambda: b'salt'
+          bcrypt_mock.checkpw = lambda pw, h: hashlib.sha256(pw).hexdigest().encode() == h
+          sys.modules['bcrypt'] = bcrypt_mock
+          import os; os.environ['DATABASE_URL'] = 'sqlite:///test.db'
+          from database import init_db
+          from hand_engine import start_new_hand, apply_hero_action, finalize_hand
+          init_db()
+          hand = start_new_hand('fish')
+          hand = apply_hero_action(hand, 'raise')
+          summary = finalize_hand(hand)
+          assert 'hand_str' in summary
+          print('Tests passed')
+          "
+
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build, tag, and push image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG:    ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+                     $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }} \
+            --region ${{ env.AWS_REGION }}
+          echo "Deployment complete!"
