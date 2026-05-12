@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stats - GTO Trainer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a}
+.nav{background:white;border-bottom:1px solid #e0e0e0;padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.nav a{font-size:13px;color:#666;text-decoration:none;padding:4px 10px;border-radius:6px}
+.nav a:hover,.nav a.active{background:#EEEDFE;color:#3C3489}
+.nav .logo{font-size:15px;font-weight:500;margin-right:auto}
+.lang-toggle{display:flex;border:1px solid #ddd;border-radius:8px;overflow:hidden}
+.lang-btn{padding:4px 12px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;border:none;color:#888}
+.lang-btn.active{background:#EEEDFE;color:#3C3489}
+.main{max-width:740px;margin:0 auto;padding:1.5rem 1rem}
+.section{background:white;border:1px solid #e8e8e3;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.stitle{font-size:13px;font-weight:500;margin-bottom:1rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem}
+@media(max-width:480px){.grid4{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:#f8f8f5;border-radius:8px;padding:.75rem;text-align:center}
+.kpi-n{font-size:22px;font-weight:500}
+.kpi-l{font-size:11px;color:#888;margin-top:2px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:.6rem}
+.bar-lbl{width:70px;font-size:12px;color:#555;flex-shrink:0}
+.bar-wrap{flex:1;height:16px;background:#f0f0ec;border-radius:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:8px;transition:width .4s}
+.bar-num{width:45px;font-size:12px;color:#555;text-align:right;flex-shrink:0}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:.4rem .6rem;border-bottom:1px solid #e8e8e3;color:#888;font-weight:500}
+td{padding:.45rem .6rem;border-bottom:1px solid #f0f0ec}
+.dok{display:inline-block;width:8px;height:8px;border-radius:50%;background:#1D9E75;margin-right:4px}
+.dno{display:inline-block;width:8px;height:8px;border-radius:50%;background:#E24B4A;margin-right:4px}
+.badge{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:500}
+.badge-pre{background:#EEEDFE;color:#3C3489}
+.badge-flop{background:#E1F5EE;color:#085041}
+.badge-turn{background:#FAEEDA;color:#633806}
+.badge-river{background:#FAECE7;color:#712B13}
+.empty{color:#aaa;font-size:13px;text-align:center;padding:1.5rem}
+</style>
+</head>
+<body>
+<div class="nav">
+  <span class="logo">🃏 GTO Trainer</span>
+  <a href="/" data-i18n="nav_train">训练</a>
+  <a href="/stats" class="active" data-i18n="nav_stats">统计分析</a>
+  <a href="/info" data-i18n="nav_info">术语词典</a>
+  <div class="lang-toggle">
+    <button class="lang-btn active" data-lang="zh" onclick="setGlobalLang('zh')">中文</button>
+    <button class="lang-btn" data-lang="en" onclick="setGlobalLang('en')">EN</button>
+  </div>
+</div>
+<div class="main">
+  <div class="section">
+    <div class="stitle" data-i18n="stats_overall">总体表现</div>
+    <div class="grid4" id="kpiGrid">
+      <div class="kpi"><div class="kpi-n">—</div><div class="kpi-l" data-i18n="stat_total">决策总数</div></div>
+      <div class="kpi"><div class="kpi-n" style="color:#1D9E75">—</div><div class="kpi-l" data-i18n="stat_correct">正确</div></div>
+      <div class="kpi"><div class="kpi-n" style="color:#534AB7">—</div><div class="kpi-l" data-i18n="stat_pct">正确率</div></div>
+      <div class="kpi"><div class="kpi-n">—</div><div class="kpi-l" data-i18n="stat_sessions">训练场次</div></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="section"><div class="stitle" data-i18n="stats_by_street">各街道正确率</div><div id="streetBars"><div class="empty" data-i18n="stats_no_data">暂无数据</div></div></div>
+    <div class="section"><div class="stitle" data-i18n="stats_by_pos">各位置正确率</div><div id="posBars"><div class="empty" data-i18n="stats_no_data">暂无数据</div></div></div>
+  </div>
+  <div class="section"><div class="stitle" data-i18n="stats_weak">⚠️ 薄弱手牌</div><div id="weakEl"><div class="empty" data-i18n="stats_no_weak">需要至少3次记录</div></div></div>
+  <div class="section"><div class="stitle" data-i18n="stats_recent">最近决策记录</div><div id="recentEl"><div class="empty" data-i18n="stats_no_recent">暂无记录</div></div></div>
+  <div class="section"><div class="stitle" data-i18n="stats_sessions">训练场次历史</div><div id="sessEl"><div class="empty" data-i18n="stats_no_recent">暂无记录</div></div></div>
+</div>
+<script src="/static/i18n.js"></script>
+<script>
+const BC={preflop:'badge-pre',flop:'badge-flop',turn:'badge-turn',river:'badge-river'};
+function barColor(p){return p>=70?'#1D9E75':p>=50?'#EF9F27':'#E24B4A';}
+function onLangChange(){load();}
+
+async function load(){
+  const res=await fetch('/api/stats'); const d=await res.json();
+  const ks=document.getElementById('kpiGrid').children;
+  ks[0].querySelector('.kpi-n').textContent=d.total;
+  ks[1].querySelector('.kpi-n').textContent=d.correct;
+  ks[2].querySelector('.kpi-n').textContent=d.total?d.pct+'%':'—';
+  ks[3].querySelector('.kpi-n').textContent=d.sessions?d.sessions.length:0;
+
+  const SN={preflop:t('street_preflop'),flop:t('street_flop'),turn:t('street_turn'),river:t('street_river')};
+  const se=document.getElementById('streetBars');
+  if(Object.keys(d.by_street).length){
+    se.innerHTML=['preflop','flop','turn','river'].map(s=>{
+      const r=d.by_street[s]; if(!r)return'';
+      return`<div class="bar-row"><span class="bar-lbl">${SN[s]}</span><div class="bar-wrap"><div class="bar-fill" style="width:${r.pct}%;background:${barColor(r.pct)}"></div></div><span class="bar-num">${r.pct}%</span></div>`;
+    }).join('');
+  }
+
+  const pe=document.getElementById('posBars');
+  if(Object.keys(d.by_position).length){
+    pe.innerHTML=Object.entries(d.by_position).map(([pos,r])=>
+      `<div class="bar-row"><span class="bar-lbl">${pos}</span><div class="bar-wrap"><div class="bar-fill" style="width:${r.pct}%;background:${barColor(r.pct)}"></div></div><span class="bar-num">${r.pct}%</span></div>`
+    ).join('');
+  }
+
+  const we=document.getElementById('weakEl');
+  if(d.weak_hands.length){
+    we.innerHTML=`<table><thead><tr><th data-i18n="tbl_hand">${t('tbl_hand')}</th><th data-i18n="tbl_count">${t('tbl_count')}</th><th data-i18n="tbl_correct">${t('tbl_correct')}</th><th data-i18n="tbl_pct">${t('tbl_pct')}</th></tr></thead><tbody>
+    ${d.weak_hands.map(h=>`<tr><td><strong>${h.hand}</strong></td><td>${h.total}</td><td>${h.correct}</td><td style="color:${barColor(h.pct)};font-weight:500">${h.pct}%</td></tr>`).join('')}</tbody></table>`;
+  }
+
+  const re=document.getElementById('recentEl');
+  if(d.recent.length){
+    re.innerHTML=`<table><thead><tr><th>${t('tbl_street')}</th><th>${t('tbl_pos')}</th><th>${t('tbl_hand')}</th><th>${t('tbl_your_action')}</th><th>${t('tbl_gto')}</th><th>${t('tbl_result')}</th></tr></thead><tbody>
+    ${d.recent.map(r=>`<tr>
+      <td><span class="badge ${BC[r.street]}">${SN[r.street]}</span></td>
+      <td>${r.position}</td><td><strong>${r.hand_str}</strong></td>
+      <td>${r.user_action}</td><td>${r.gto_action}</td>
+      <td>${r.is_correct?`<span class="dok"></span>${t('result_ok')}`:`<span class="dno"></span>${t('result_no')}`}</td>
+    </tr>`).join('')}</tbody></table>`;
+  }
+
+  const sess=document.getElementById('sessEl');
+  if(d.sessions.length){
+    sess.innerHTML=`<table><thead><tr><th>${t('tbl_session')}</th><th>${t('tbl_time')}</th><th>${t('tbl_decisions')}</th><th>${t('tbl_pct')}</th></tr></thead><tbody>
+    ${d.sessions.map(s=>{
+      const pct=s.total_hands?Math.round(s.correct/s.total_hands*100):0;
+      const date=s.started_at?s.started_at.slice(0,16).replace('T',' '):'—';
+      return`<tr><td>#${s.id}</td><td style="color:#888">${date}</td><td>${s.total_hands||0}</td><td style="color:${barColor(pct)};font-weight:500">${s.total_hands?pct+'%':'—'}</td></tr>`;
+    }).join('')}</tbody></table>`;
+  }
+}
+
+initLang();
+load();
+</script>
+</body>
+</html>

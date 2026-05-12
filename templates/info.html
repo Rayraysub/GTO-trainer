@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Glossary - GTO Trainer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a}
+.nav{background:white;border-bottom:1px solid #e0e0e0;padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.nav a{font-size:13px;color:#666;text-decoration:none;padding:4px 10px;border-radius:6px}
+.nav a:hover,.nav a.active{background:#EEEDFE;color:#3C3489}
+.nav .logo{font-size:15px;font-weight:500;margin-right:auto}
+.lang-toggle{display:flex;border:1px solid #ddd;border-radius:8px;overflow:hidden}
+.lang-btn{padding:4px 12px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;border:none;color:#888}
+.lang-btn.active{background:#EEEDFE;color:#3C3489}
+.main{max-width:740px;margin:0 auto;padding:1.5rem 1rem}
+.search-wrap{position:relative;margin-bottom:1rem}
+.search-wrap input{width:100%;padding:8px 12px 8px 36px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:white;color:#1a1a1a}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#aaa;font-size:15px}
+.cat-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.cat-btn{padding:4px 12px;border-radius:8px;border:1px solid #ddd;background:white;color:#666;cursor:pointer;font-size:12px}
+.cat-btn:hover{background:#f0f0f0}
+.cat-btn.active{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;font-weight:500}
+.term-list{display:flex;flex-direction:column;gap:8px}
+.term-card{background:white;border:1px solid #e8e8e3;border-radius:12px;overflow:hidden}
+.term-hdr{display:flex;align-items:center;gap:10px;padding:.875rem 1.25rem;cursor:pointer}
+.term-hdr:hover{background:#fafaf8}
+.term-abbr{font-size:13px;font-weight:500;min-width:110px;flex-shrink:0}
+.term-short{font-size:12px;color:#888;flex:1}
+.cat-badge{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:500;flex-shrink:0}
+.chev{font-size:16px;color:#aaa;transition:transform .18s;flex-shrink:0}
+.chev.open{transform:rotate(180deg)}
+.term-body{display:none;border-top:1px solid #e8e8e3;padding:1rem 1.25rem}
+.term-body.show{display:block}
+.body-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:.875rem}
+@media(max-width:500px){.body-grid{grid-template-columns:1fr}}
+.info-blk{background:#f8f8f5;border-radius:8px;padding:.75rem}
+.blk-lbl{font-size:10px;font-weight:500;color:#aaa;letter-spacing:.04em;margin-bottom:.35rem}
+.blk-val{font-size:13px;color:#1a1a1a;line-height:1.55}
+.formula-blk{background:#f8f8f5;border-radius:8px;padding:.75rem;margin-bottom:.875rem;font-size:12px;color:#555;line-height:1.7}
+.formula-blk code{background:white;border:1px solid #e8e8e3;padding:1px 5px;border-radius:4px;font-size:12px;color:#1a1a1a}
+.bm-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px}
+.bm-range{font-weight:500;min-width:85px;flex-shrink:0;color:#1a1a1a}
+.bm-bar-w{flex:1;height:8px;background:#f0f0ec;border-radius:4px;overflow:hidden}
+.bm-bar{height:100%;border-radius:4px}
+.bm-lbl{color:#666;min-width:120px;flex-shrink:0}
+.ex-blk{font-size:12px;color:#666;line-height:1.7;border-left:2px solid #e0e0e0;padding-left:.75rem;border-radius:0}
+.no-res{text-align:center;padding:2rem;color:#aaa;font-size:13px}
+</style>
+</head>
+<body>
+<div class="nav">
+  <span class="logo">🃏 GTO Trainer</span>
+  <a href="/" data-i18n="nav_train">训练</a>
+  <a href="/stats" data-i18n="nav_stats">统计分析</a>
+  <a href="/info" class="active" data-i18n="nav_info">术语词典</a>
+  <div class="lang-toggle">
+    <button class="lang-btn active" data-lang="zh" onclick="setGlobalLang('zh')">中文</button>
+    <button class="lang-btn" data-lang="en" onclick="setGlobalLang('en')">EN</button>
+  </div>
+</div>
+<div class="main">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" data-i18n-ph="info_search" placeholder="搜索术语..." oninput="renderList()">
+  </div>
+  <div class="cat-row" id="catRow"></div>
+  <div class="term-list" id="termList"></div>
+</div>
+<script src="/static/i18n.js"></script>
+<script>
+const TERMS=[
+  {id:'vpip',cat:'basic',abbr:'VPIP',
+   full:{zh:'自愿入池率',en:'Voluntarily Put Money In Pot'},
+   short:{zh:'主动投入筹码入池的频率',en:'How often you voluntarily invest chips preflop'},
+   what:{zh:'翻前主动跟注或加注（不包括大盲注强制投入）的手牌比例。衡量一个玩家的松紧程度。',en:'% of hands where you voluntarily invest chips preflop (excluding forced BB). Core measure of looseness/tightness.'},
+   formula:{zh:'VPIP = 主动入池手牌数 ÷ 总手牌数 × 100%',en:'VPIP = Hands voluntarily entered ÷ Total hands × 100%'},
+   benchmarks:[
+     {range:'< 15%',label:{zh:'超紧 Nit',en:'Nit'},color:'#AFA9EC',w:15},
+     {range:'15–22%',label:{zh:'紧凶 TAG',en:'TAG'},color:'#5DCAA5',w:35},
+     {range:'23–35%',label:{zh:'松凶 LAG',en:'LAG'},color:'#EF9F27',w:60},
+     {range:'> 35%',label:{zh:'鱼型 / 站型',en:'Fish / Station'},color:'#F09595',w:80},
+   ],
+   example:{zh:'VPIP 55% 意味着超过一半手牌都会入池，手牌选择太宽，通常是鱼型玩家的特征。',en:'VPIP 55% means entering more than half of hands — too wide, typical of fish players.'}},
+  {id:'pfr',cat:'basic',abbr:'PFR',
+   full:{zh:'翻前加注率',en:'Pre-Flop Raise'},
+   short:{zh:'翻前主动加注的频率',en:'How often you raise preflop'},
+   what:{zh:'翻前选择加注（包括开牌加注、3bet、4bet）的手牌比例。VPIP−PFR差值越大，说明跟注越多、加注越少（被动型）。',en:'% of hands where you raise preflop. Large VPIP−PFR gap = lots of calling, passive tendencies.'},
+   formula:{zh:'PFR = 翻前加注手牌数 ÷ 总手牌数 × 100%',en:'PFR = Hands raised preflop ÷ Total hands × 100%'},
+   benchmarks:[
+     {range:'< 10%',label:{zh:'被动型',en:'Passive'},color:'#F09595',w:20},
+     {range:'10–18%',label:{zh:'标准 TAG',en:'Standard TAG'},color:'#5DCAA5',w:45},
+     {range:'18–28%',label:{zh:'松凶 LAG',en:'LAG'},color:'#EF9F27',w:65},
+     {range:'> 28%',label:{zh:'过于激进',en:'Over-aggressive'},color:'#F09595',w:85},
+   ],
+   example:{zh:'VPIP/PFR = 22/18 是标准 TAG。22/8 说明对手入池很多但不加注，是典型的被动跟注型。',en:'VPIP/PFR = 22/18 is standard TAG. 22/8 means lots of calling but no raising — passive caller.'}},
+  {id:'cbet',cat:'postflop',abbr:'C-bet',
+   full:{zh:'持续下注',en:'Continuation Bet'},
+   short:{zh:'翻前加注方在翻牌继续下注',en:'Betting the flop after raising preflop'},
+   what:{zh:'翻前是加注方，在翻牌轮继续下注的行为。分为翻牌c-bet、转牌double barrel和河牌triple barrel。C-bet频率过高说明范围弱，可以被check-raise反制。',en:'When the preflop aggressor bets the flop. High c-bet frequency = weak range, exploitable by check-raise.'},
+   formula:{zh:'C-bet频率 = 翻牌下注次数 ÷ 有机会c-bet的次数 × 100%',en:'C-bet % = Flop bets ÷ Opportunities to c-bet × 100%'},
+   benchmarks:[
+     {range:'< 40%',label:{zh:'过于保守',en:'Too passive'},color:'#F09595',w:30},
+     {range:'40–60%',label:{zh:'标准范围',en:'Standard'},color:'#5DCAA5',w:50},
+     {range:'60–75%',label:{zh:'偏激进',en:'Aggressive'},color:'#EF9F27',w:67},
+     {range:'> 75%',label:{zh:'过于激进',en:'Over-aggressive'},color:'#F09595',w:85},
+   ],
+   example:{zh:'对手 C-bet 80%，几乎每次翻牌都下注，范围弱。可以用 check-raise 或 float 反制。',en:'Opponent c-bets 80% — bets almost every flop, weak range. Counter with check-raise or float.'}},
+  {id:'fold_cbet',cat:'postflop',abbr:'Fold to C-bet',
+   full:{zh:'面对持续下注的弃牌率',en:'Fold to Continuation Bet'},
+   short:{zh:'面对对手c-bet时弃牌的频率',en:'How often you fold when facing a c-bet'},
+   what:{zh:'面对翻牌持续下注时选择弃牌的比例。GTO均衡值取决于下注尺度：33%注→需弃55%，50%注→需弃50%，75%注→需弃44%。偏离均衡就会被剥削。',en:'% of folds when facing a c-bet. GTO equilibrium depends on sizing: 33% bet → fold 55%, 50% → fold 50%, 75% → fold 44%.'},
+   formula:{zh:'GTO最优弃牌率 = 下注额 ÷ (底池 + 下注额 + 跟注额)\n例：底池100，下注50 → 50÷200 = 25% 权益需求 → 对手需弃55%',en:'GTO fold rate = Bet ÷ (Pot + Bet + Call)\nExample: pot 100, bet 50 → 50÷200 = 25% equity needed → opponent should fold 55%'},
+   benchmarks:[
+     {range:'< 35%',label:{zh:'跟注太多',en:'Too many calls'},color:'#F09595',w:25},
+     {range:'35–55%',label:{zh:'接近均衡',en:'Near GTO'},color:'#5DCAA5',w:45},
+     {range:'55–70%',label:{zh:'弃牌偏多',en:'Folding too much'},color:'#EF9F27',w:62},
+     {range:'> 70%',label:{zh:'可以大量bluff',en:'Bluff heavily'},color:'#AFA9EC',w:80},
+   ],
+   example:{zh:'对手 Fold to Cbet = 68%。你下注50bb进100bb底池只需要25%权益保本，但对手弃牌率远超均衡，bluff必赚。',en:'Opponent folds 68% to c-bet. You only need 25% equity to break even, but opponent folds way above equilibrium — bluffs are profitable.'}},
+  {id:'3bet',cat:'preflop',abbr:'3-bet',
+   full:{zh:'三次加注',en:'3-Bet (Re-raise)'},
+   short:{zh:'面对开牌加注后再次加注',en:'Re-raising after a preflop open-raise'},
+   what:{zh:'翻前第三次加注（大盲注=1，开牌=2，3bet=3）。3bet范围分为价值（AA/KK/QQ/AK）和bluff（A5s/K4s等）两类，保持均衡让对手无法读牌。',en:'Third preflop bet. Range splits into value (AA/KK/QQ/AK) and bluff (A5s/K4s). Balance keeps opponents guessing.'},
+   formula:{zh:'3bet频率 = 3bet手牌数 ÷ 面对开牌加注次数 × 100%',en:'3-bet % = 3-bets ÷ Opportunities to 3-bet × 100%'},
+   benchmarks:[
+     {range:'< 4%',label:{zh:'只有强牌',en:'Value-only'},color:'#AFA9EC',w:20},
+     {range:'4–9%',label:{zh:'标准范围',en:'Standard'},color:'#5DCAA5',w:45},
+     {range:'9–15%',label:{zh:'松凶 LAG',en:'Aggressive LAG'},color:'#EF9F27',w:65},
+     {range:'> 15%',label:{zh:'过于激进',en:'Over-aggressive'},color:'#F09595',w:85},
+   ],
+   example:{zh:'对手 3bet 率只有 3%，几乎只有 AA/KK/QQ/AK 才会3bet。面对他的3bet可以大胆弃牌。',en:'Opponent 3-bets only 3% — essentially only AA/KK/QQ/AK. Fold comfortably to their 3-bets.'}},
+  {id:'fold3bet',cat:'preflop',abbr:'Fold to 3-bet',
+   full:{zh:'面对3bet的弃牌率',en:'Fold to 3-Bet'},
+   short:{zh:'开牌后面对3bet时弃牌的频率',en:'How often you fold your open-raise to a 3-bet'},
+   what:{zh:'开牌加注后面对3bet选择弃牌的比例。GTO均衡约55–65%（视位置和3bet尺度）。太高说明可以疯狂3bet bluff；太低说明他用弱牌跟注，减少bluff。',en:'% you fold an open-raise to a 3-bet. GTO ~55–65%. Too high = 3-bet bluff liberally. Too low = cut bluffs, bet value.'},
+   formula:{zh:'GTO均衡弃牌率 ≈ 55–65%（视位置和尺度）\n如果对手3bet到10bb面对2.5bb开牌，需要权益约28%跟注',en:'GTO equilibrium ≈ 55–65% (position and sizing dependent)\nIf villain 3-bets to 10bb vs 2.5bb open, need ~28% equity to call'},
+   benchmarks:[
+     {range:'< 45%',label:{zh:'跟注太多',en:'Too many calls'},color:'#F09595',w:30},
+     {range:'45–65%',label:{zh:'接近均衡',en:'Near GTO'},color:'#5DCAA5',w:55},
+     {range:'65–80%',label:{zh:'可以3bet bluff',en:'3-bet bluff freely'},color:'#EF9F27',w:72},
+     {range:'> 80%',label:{zh:'疯狂3bet',en:'3-bet very liberally'},color:'#F09595',w:88},
+   ],
+   example:{zh:'对手 Fold to 3bet = 78%。你可以用 A5s、K4s 等任何有权益的手牌3bet，长期必赚。',en:'Opponent folds 78% to 3-bets. 3-bet any hand with some equity (A5s, K4s) for long-term profit.'}},
+  {id:'wtsd',cat:'postflop',abbr:'WTSD',
+   full:{zh:'走到摊牌率',en:'Went to Showdown'},
+   short:{zh:'入池后最终走到摊牌的频率',en:'How often you reach showdown after seeing the flop'},
+   what:{zh:'看了翻牌后最终走到摊牌的比例。WTSD高 = 站型特征，不轻易弃牌，bluff无效；WTSD低 = 中途容易弃牌，bluff有效。',en:'% of flops seen where you reach showdown. High = calling station (bluffs fail). Low = folds mid-hand (bluffs work).'},
+   formula:{zh:'WTSD = 走到摊牌次数 ÷ 看翻牌次数 × 100%',en:'WTSD = Showdowns reached ÷ Flops seen × 100%'},
+   benchmarks:[
+     {range:'< 22%',label:{zh:'弃牌太多',en:'Folds too much'},color:'#AFA9EC',w:22},
+     {range:'22–30%',label:{zh:'标准范围',en:'Standard'},color:'#5DCAA5',w:45},
+     {range:'30–38%',label:{zh:'偏松被动',en:'Loose-passive'},color:'#EF9F27',w:65},
+     {range:'> 38%',label:{zh:'站型特征',en:'Calling station'},color:'#F09595',w:80},
+   ],
+   example:{zh:'对手 WTSD = 46%，非常高。河牌bluff基本无效，只用强牌下注获取薄价值。',en:'Opponent WTSD = 46% — very high. River bluffs are nearly useless. Value bet thin with strong hands.'}},
+  {id:'agg',cat:'postflop',abbr:'AF / AGG',
+   full:{zh:'攻击性系数',en:'Aggression Factor'},
+   short:{zh:'下注+加注相对于跟注的比率',en:'Ratio of bets+raises to calls postflop'},
+   what:{zh:'（翻后下注 + 加注）÷ 跟注。AF高 = 主动下注/加注多；AF低 = 被动跟注多。AF < 1 是明显的被动型，AF > 3 是激进型。',en:'(Bets + Raises) ÷ Calls postflop. High = bets/raises a lot. Low = passive caller. AF < 1 is clearly passive, AF > 3 is aggressive.'},
+   formula:{zh:'AF = (翻后下注次数 + 加注次数) ÷ 跟注次数',en:'AF = (Postflop bets + raises) ÷ Calls'},
+   benchmarks:[
+     {range:'< 1.0',label:{zh:'非常被动',en:'Very passive'},color:'#F09595',w:20},
+     {range:'1.0–2.0',label:{zh:'标准被动',en:'Standard passive'},color:'#EF9F27',w:40},
+     {range:'2.0–3.5',label:{zh:'标准激进',en:'Standard aggressive'},color:'#5DCAA5',w:60},
+     {range:'> 3.5',label:{zh:'非常激进',en:'Very aggressive'},color:'#AFA9EC',w:80},
+   ],
+   example:{zh:'对手 AF = 0.6，非常被动。他的翻后加注几乎肯定是强牌。面对他的加注直接弃牌；他跟注时可以大注bluff。',en:'Opponent AF = 0.6 — very passive. Postflop raises are almost always strong hands. Fold to their raises; bluff freely when they just call.'}},
+  {id:'ev',cat:'math',abbr:'EV',
+   full:{zh:'期望值',en:'Expected Value'},
+   short:{zh:'某个行动长期平均赚/亏的筹码数',en:'Average chips won or lost per action over the long run'},
+   what:{zh:'某个行动在所有可能结果下的加权平均收益。EV为正 = 长期盈利；EV为负 = 亏钱。GTO的目标是最大化每个决策点的EV。',en:'Weighted average of all possible outcomes. Positive EV = profitable long-term. GTO maximizes EV at every decision point.'},
+   formula:{zh:'EV = Σ (概率 × 结果)\n下注EV = 弃牌率×底池 + 跟注率×((底池+2×下注)×权益 − 下注)',en:'EV = Σ (probability × outcome)\nBet EV = fold%×pot + call%×((pot+2×bet)×equity − bet)'},
+   benchmarks:[
+     {range:'EV > 0',label:{zh:'正EV，应该做',en:'Positive EV — do it'},color:'#5DCAA5',w:70},
+     {range:'EV = 0',label:{zh:'均衡点，无差别',en:'Indifferent — GTO equilibrium'},color:'#EF9F27',w:50},
+     {range:'EV < 0',label:{zh:'负EV，不做',en:'Negative EV — avoid'},color:'#F09595',w:30},
+   ],
+   example:{zh:'底池100bb，下注50bb，对手弃牌40%，被跟注权益35%：\nEV = 40%×100 + 60%×(200×35%−50) = 40+12 = +52bb',en:'Pot 100bb, bet 50bb, fold 40%, equity 35% when called:\nEV = 40%×100 + 60%×(200×35%−50) = 40+12 = +52bb'}},
+  {id:'pot_odds',cat:'math',abbr:'Pot Odds',
+   full:{zh:'底池赔率',en:'Pot Odds'},
+   short:{zh:'跟注所需的最低权益',en:'Minimum equity needed to make a call profitable'},
+   what:{zh:'面对对手下注时，跟注所需投入相对于总底池的比例，即你需要的最低权益。低于此权益应弃牌（不考虑隐含赔率）。',en:'The ratio of your call to the total pot after calling — equals the minimum equity you need. Below this = fold (ignoring implied odds).'},
+   formula:{zh:'需要权益 = 跟注额 ÷ (底池 + 对手下注 + 跟注额)\n\n下注33%→需要20% | 下注50%→需要25%\n下注75%→需要30% | 下注100%→需要33%',en:'Needed equity = Call ÷ (Pot + Bet + Call)\n\n33% pot bet → need 20% | 50% pot → need 25%\n75% pot → need 30% | pot-size → need 33%'},
+   benchmarks:[
+     {range:'Bet 33%',label:{zh:'需20%权益',en:'Need 20% equity'},color:'#5DCAA5',w:20},
+     {range:'Bet 50%',label:{zh:'需25%权益',en:'Need 25% equity'},color:'#5DCAA5',w:40},
+     {range:'Bet 75%',label:{zh:'需30%权益',en:'Need 30% equity'},color:'#EF9F27',w:55},
+     {range:'Bet 100%',label:{zh:'需33%权益',en:'Need 33% equity'},color:'#EF9F27',w:70},
+   ],
+   example:{zh:'对手下注75bb进100bb底池。需要权益 = 75÷250 = 30%。同花听牌约35%权益，跟注合算。',en:'Opponent bets 75bb into 100bb pot. Needed equity = 75÷250 = 30%. Flush draw has ~35% equity — profitable call.'}},
+  {id:'equity',cat:'math',abbr:'Equity',
+   full:{zh:'权益 / 胜率',en:'Equity'},
+   short:{zh:'摊牌时赢得底池的概率',en:'Your probability of winning at showdown'},
+   what:{zh:'假设双方直接摊牌，你赢得底池的概率。常用两倍规则：每张出牌约2%权益（单街），约4%（双街）。AA vs any≈85%，同花听牌≈18%（单街），双面顺子≈16%。',en:'Your probability of winning if both players check down. Rule of 2: each out ≈ 2% per street (4% for two streets). AA vs any ≈ 85%, flush draw ≈ 18% per street, OESD ≈ 16%.'},
+   formula:{zh:'蒙特卡洛法：随机发完剩余牌N次，统计赢的比例\n\n出牌×2 ≈ 单街权益\n出牌×4 ≈ 双街权益（翻牌到河牌）',en:'Monte Carlo: deal remaining board N times randomly, count wins.\n\nOuts × 2 ≈ equity per street\nOuts × 4 ≈ equity for two streets (flop to river)'},
+   benchmarks:[
+     {range:'< 20%',label:{zh:'太弱，弃牌',en:'Too weak — fold'},color:'#F09595',w:20},
+     {range:'20–35%',label:{zh:'需要赔率支撑',en:'Need good odds'},color:'#EF9F27',w:35},
+     {range:'35–50%',label:{zh:'有竞争力',en:'Competitive'},color:'#5DCAA5',w:50},
+     {range:'> 50%',label:{zh:'领先，主动下注',en:'Ahead — bet for value'},color:'#5DCAA5',w:70},
+   ],
+   example:{zh:'翻牌有同花听牌(9张)+双面顺子(8张)=15张出牌，权益约15×4=60%（双街）。翻牌已经领先！',en:'Flop: flush draw (9 outs) + OESD (8 outs) = 15 outs. Equity ≈ 15×4 = 60% for two streets. You\'re actually ahead!'}},
+  {id:'gto',cat:'concept',abbr:'GTO',
+   full:{zh:'博弈论最优策略',en:'Game Theory Optimal'},
+   short:{zh:'无法被剥削的均衡打法',en:'A strategy that cannot be exploited regardless of opponent'},
+   what:{zh:'一种让对手无法通过任何策略调整来获得正EV的打法。GTO使用混合策略（如70%加注/30%跟注），让对手无法读牌。注意：针对特定对手的剥削性打法可能比纯GTO更赚。',en:'A strategy where no opponent deviation can gain positive EV against you. Uses mixed strategies to stay unexploitable. Note: exploitative play vs specific opponents can be more profitable than pure GTO.'},
+   formula:{zh:'GTO bluff频率 = 下注额 ÷ (底池 + 下注额)\n\n例：下注75bb进100bb底池\n= 75÷175 ≈ 43% 的下注是bluff',en:'GTO bluff frequency = Bet ÷ (Pot + Bet)\n\nExample: bet 75 into 100\n= 75÷175 ≈ 43% of your bets should be bluffs'},
+   benchmarks:[
+     {range:'Bluff比例太低',label:{zh:'可被读牌，被剥削',en:'Value-heavy, readable'},color:'#F09595',w:25},
+     {range:'GTO均衡',label:{zh:'价值/bluff均衡',en:'Balanced range'},color:'#5DCAA5',w:55},
+     {range:'Bluff比例太高',label:{zh:'可被调用，被剥削',en:'Over-bluffing, exploitable'},color:'#F09595',w:80},
+   ],
+   example:{zh:'河牌下注100%底池，GTO要求约50%是价值牌、50%是bluff。偏离这个比例就会被剥削。',en:'River pot-size bet: GTO requires ~50% value, 50% bluffs. Deviate and you become exploitable.'}},
+  {id:'position',cat:'concept',abbr:'IP / OOP',
+   full:{zh:'位置（有利/不利）',en:'In Position / Out of Position'},
+   short:{zh:'翻后行动顺序的先后',en:'Whether you act last (IP) or first (OOP) postflop'},
+   what:{zh:'IP（In Position）= 翻后最后行动，看到对手行动后再决策，是巨大优势。OOP（Out of Position）= 翻后先行动，不知道对手意图。统计上IP比OOP每百手高约10–20bb EV。',en:'IP = act last postflop — see what opponent does first (huge advantage). OOP = act first (disadvantage). IP vs OOP EV gap ≈ 10–20bb/100 hands on average.'},
+   formula:{zh:'位置优势无法用单一公式量化\nIP时EV平均比OOP高约10–20bb/100手\n\nBTN最佳（翻后最后行动）\nSB最差（翻后通常先行动）',en:'No single formula — positional edge is studied empirically\nIP EV ≈ 10–20bb/100 higher than OOP\n\nBTN best (acts last postflop)\nSB worst (acts first postflop)'},
+   benchmarks:[
+     {range:'BTN',label:{zh:'最优位，翻后最后',en:'Best position'},color:'#5DCAA5',w:90},
+     {range:'CO/HJ',label:{zh:'较好位置',en:'Good position'},color:'#5DCAA5',w:65},
+     {range:'UTG vs BTN',label:{zh:'不利位置',en:'Out of position'},color:'#EF9F27',w:35},
+     {range:'SB',label:{zh:'最差位，翻后先行',en:'Worst position'},color:'#F09595',w:15},
+   ],
+   example:{zh:'你在 BTN 开牌，BB 跟注。翻牌对手先check，你可以选择c-bet施压或check-back控制底池，掌握主动权。',en:'You open BTN, BB calls. Flop: opponent checks first, giving you the choice to c-bet or check back. This information advantage is enormous.'}},
+];
+
+const CATS={
+  all:{zh:'全部',en:'All'},
+  basic:{zh:'基础统计',en:'Basic stats'},
+  preflop:{zh:'翻前',en:'Preflop'},
+  postflop:{zh:'翻后',en:'Postflop'},
+  math:{zh:'数学',en:'Math'},
+  concept:{zh:'核心概念',en:'Concepts'},
+};
+const CAT_COLORS={
+  basic:{bg:'#E6F1FB',tc:'#0C447C'},preflop:{bg:'#EEEDFE',tc:'#3C3489'},
+  postflop:{bg:'#E1F5EE',tc:'#085041'},math:{bg:'#FAEEDA',tc:'#633806'},
+  concept:{bg:'#FAECE7',tc:'#712B13'},
+};
+
+let activeCat='all', openId=null;
+
+function onLangChange(){buildCats();renderList();}
+
+function buildCats(){
+  const row=document.getElementById('catRow'); row.innerHTML='';
+  Object.entries(CATS).forEach(([k,v])=>{
+    const btn=document.createElement('div');
+    btn.className='cat-btn'+(k===activeCat?' active':'');
+    btn.textContent=v[window._lang||'zh'];
+    btn.onclick=()=>{activeCat=k;buildCats();renderList();};
+    row.appendChild(btn);
+  });
+}
+
+function renderList(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const L=window._lang||'zh';
+  const filtered=TERMS.filter(term=>{
+    const mc=activeCat==='all'||term.cat===activeCat;
+    const mq=!q||term.abbr.toLowerCase().includes(q)||term.full[L].toLowerCase().includes(q)||term.short[L].toLowerCase().includes(q);
+    return mc&&mq;
+  });
+  const el=document.getElementById('termList');
+  if(!filtered.length){el.innerHTML=`<div class="no-res">${t('info_no_results')}</div>`;return;}
+  el.innerHTML=filtered.map(term=>{
+    const cc=CAT_COLORS[term.cat]||CAT_COLORS.concept;
+    const catLbl=CATS[term.cat][L];
+    const isOpen=openId===term.id;
+    return`<div class="term-card">
+      <div class="term-hdr" onclick="toggleTerm('${term.id}')">
+        <span class="term-abbr">${term.abbr}</span>
+        <span class="term-short">${term.short[L]}</span>
+        <span class="cat-badge" style="background:${cc.bg};color:${cc.tc}">${catLbl}</span>
+        <span class="chev${isOpen?' open':''}">&#8964;</span>
+      </div>
+      <div class="term-body${isOpen?' show':''}">
+        <div class="body-grid">
+          <div class="info-blk"><div class="blk-lbl">${t('info_full_name')}</div><div class="blk-val">${term.full[L]}</div></div>
+          <div class="info-blk"><div class="blk-lbl">${t('info_definition')}</div><div class="blk-val">${term.what[L]}</div></div>
+        </div>
+        <div class="formula-blk">
+          <div style="font-size:10px;font-weight:500;color:#aaa;letter-spacing:.04em;margin-bottom:.4rem">${t('info_formula')}</div>
+          ${term.formula[L].split('\n').map(l=>`<div>${l.includes('=')||l.includes('÷')||l.includes('×')||l.includes('%')?`<code>${l}</code>`:l}</div>`).join('')}
+        </div>
+        <div style="margin-bottom:.875rem">
+          <div style="font-size:10px;font-weight:500;color:#aaa;letter-spacing:.04em;margin-bottom:.5rem">${t('info_benchmarks')}</div>
+          ${term.benchmarks.map(b=>`
+            <div class="bm-row">
+              <span class="bm-range">${b.range}</span>
+              <div class="bm-bar-w"><div class="bm-bar" style="width:${b.w}%;background:${b.color}"></div></div>
+              <span class="bm-lbl">${b.label[L]}</span>
+            </div>`).join('')}
+        </div>
+        <div class="ex-blk">
+          <div style="font-size:10px;font-weight:500;color:#aaa;letter-spacing:.04em;margin-bottom:.3rem">${t('info_example')}</div>
+          ${term.example[L]}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleTerm(id){openId=openId===id?null:id;renderList();}
+
+initLang();
+buildCats();
+renderList();
+</script>
+</body>
+</html>

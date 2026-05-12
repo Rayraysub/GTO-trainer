@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GTO Trainer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;font-size:14px}
+
+/* ── Nav ── */
+.nav{background:white;border-bottom:1px solid #e0e0e0;padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.nav a{font-size:13px;color:#666;text-decoration:none;padding:4px 10px;border-radius:6px}
+.nav a:hover,.nav a.active{background:#EEEDFE;color:#3C3489}
+.logo{font-size:15px;font-weight:600;margin-right:auto}
+.lang-toggle{display:flex;border:1px solid #ddd;border-radius:8px;overflow:hidden}
+.lang-btn{padding:4px 12px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;border:none;color:#888;transition:all .12s}
+.lang-btn.active{background:#EEEDFE;color:#3C3489}
+
+/* ── Layout ── */
+.main{max-width:760px;margin:0 auto;padding:1.5rem 1rem}
+
+/* ── Auth Modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal-box{background:white;border-radius:14px;padding:2rem;width:100%;max-width:360px;margin:1rem}
+.modal-box h3{font-size:15px;font-weight:600;margin-bottom:1.25rem}
+.field{margin-bottom:.875rem}
+.field label{font-size:12px;color:#666;display:block;margin-bottom:.3rem}
+.field input{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;color:#1a1a1a;background:white}
+.field input:focus{outline:none;border-color:#AFA9EC}
+.auth-err{font-size:12px;color:#A32D2D;margin-bottom:.75rem;display:none;padding:.5rem .75rem;background:#FCEBEB;border-radius:6px}
+.auth-switch{font-size:12px;color:#888;text-align:center;margin-top:.875rem;cursor:pointer}
+.auth-switch span{color:#3C3489;font-weight:500}
+
+/* ── Buttons ── */
+.btn{padding:7px 16px;border-radius:8px;border:1px solid #ddd;background:white;color:#1a1a1a;cursor:pointer;font-size:13px;font-weight:500;transition:all .12s}
+.btn:hover{background:#f0f0f0}
+.btn.primary{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.btn.primary:hover{background:#caeedd}
+.btn.danger{background:#FCEBEB;color:#7A1F1F;border-color:#F09595}
+.btn.full{width:100%}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── Top Bar ── */
+.top-bar{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+.user-chip{font-size:12px;padding:4px 10px;border-radius:20px;background:#EEEDFE;color:#3C3489;font-weight:500}
+.session-chip{font-size:12px;padding:4px 10px;border-radius:20px;background:#EAF3DE;color:#27500A;font-weight:500}
+
+/* ── Stats Row ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.stat-card{background:white;border:1px solid #e8e8e3;border-radius:10px;padding:.75rem;text-align:center}
+.stat-n{font-size:22px;font-weight:600;color:#1a1a1a}
+.stat-l{font-size:11px;color:#aaa;margin-top:2px}
+
+/* ── Archetype Picker ── */
+.sec-label{font-size:11px;font-weight:600;color:#aaa;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.5rem}
+.ap-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.ap-btn{padding:5px 13px;border-radius:20px;border:1px solid #ddd;background:white;color:#555;cursor:pointer;font-size:12px;font-weight:500;transition:all .12s}
+.ap-btn:hover{background:#f0f0f0}
+.ap-btn.active{font-weight:600}
+
+/* ── Opponent Panel ── */
+.opp-panel{background:white;border:1px solid #e8e8e3;border-radius:12px;margin-bottom:1rem;overflow:hidden;display:none}
+.opp-panel.show{display:block}
+.opp-hdr{display:flex;align-items:center;gap:10px;padding:.875rem 1.25rem;cursor:pointer;user-select:none}
+.opp-hdr:hover{background:#fafaf8}
+.opp-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.opp-info{flex:1}
+.opp-name{font-size:13px;font-weight:600}
+.opp-desc{font-size:11px;color:#888;margin-top:2px}
+.opp-tags{display:flex;gap:5px;margin-left:auto}
+.opp-tag{font-size:11px;padding:2px 8px;border-radius:5px;font-weight:500}
+.chevron{font-size:18px;color:#bbb;transition:transform .2s;flex-shrink:0;margin-left:4px}
+.chevron.up{transform:rotate(180deg)}
+.opp-body{display:none;border-top:1px solid #f0f0ec}
+.opp-body.open{display:block}
+.opp-stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #f0f0ec}
+.opp-stat{padding:.65rem .5rem;text-align:center;border-right:1px solid #f0f0ec}
+.opp-stat:last-child{border-right:none}
+.os-val{font-size:15px;font-weight:600;color:#1a1a1a}
+.os-lbl{font-size:10px;color:#bbb;margin-top:1px}
+.os-bar{height:3px;border-radius:2px;margin-top:4px;background:#f0f0ec}
+.os-fill{height:100%;border-radius:2px}
+.signals{padding:.75rem 1.25rem}
+.sig-ttl{font-size:10px;font-weight:600;color:#bbb;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.4rem}
+.sig-row{display:flex;align-items:center;gap:8px;padding:.3rem .5rem;background:#f8f8f5;border-radius:6px;margin-bottom:4px;font-size:12px}
+.sig-stat{width:150px;flex-shrink:0;color:#666}
+.sig-badge{flex-shrink:0;font-weight:600}
+.sig-tip{color:#888;flex:1}
+
+/* ── Street Progress ── */
+.progress-bar-wrap{background:white;border:1px solid #e8e8e3;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;display:none}
+.sp-steps{display:flex;gap:5px;margin-bottom:.35rem}
+.sp-step{flex:1;height:3px;border-radius:2px;background:#e8e8e3;transition:background .3s}
+.sp-step.done{background:#1D9E75}
+.sp-step.active{background:#AFA9EC}
+.sp-lbls{display:flex;gap:5px;margin-bottom:.75rem}
+.sp-lbl{flex:1;font-size:10px;text-align:center;color:#bbb;font-weight:500}
+.sp-lbl.done{color:#1D9E75}
+.sp-lbl.active{color:#534AB7;font-weight:600}
+.hist-list{display:flex;flex-direction:column;gap:3px}
+.hist-row{display:flex;align-items:center;gap:8px;font-size:12px;padding:.25rem 0;border-bottom:1px solid #f5f5f0}
+.hist-row:last-child{border:none}
+.hist-st{width:40px;color:#bbb;flex-shrink:0;font-size:11px}
+.hist-vill{flex:1;color:#888;font-style:italic;font-size:11px}
+.hist-act{padding:1px 8px;border-radius:4px;font-weight:600;font-size:11px;flex-shrink:0}
+.hist-act.ok{background:#EAF3DE;color:#27500A}
+.hist-act.no{background:#FCEBEB;color:#7A1F1F}
+.hist-act.pending{background:#EEEDFE;color:#3C3489}
+
+/* ── Scenario Card ── */
+.scenario-card{background:white;border:1px solid #e8e8e3;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.sc-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem;flex-wrap:wrap;gap:6px}
+.badge{font-size:11px;padding:2px 9px;border-radius:5px;font-weight:600}
+.badge-pre{background:#EEEDFE;color:#3C3489}
+.badge-flop{background:#E1F5EE;color:#085041}
+.badge-turn{background:#FAEEDA;color:#633806}
+.badge-river{background:#FAECE7;color:#712B13}
+.sc-pos{font-size:12px;color:#bbb}
+.hand-label{font-size:11px;color:#bbb;margin-bottom:.4rem}
+.hand-label strong{color:#1a1a1a}
+.cards-row{display:flex;gap:5px;align-items:center;margin-bottom:.75rem;flex-wrap:wrap}
+.card{width:38px;height:52px;border-radius:6px;border:1.5px solid #ccc;background:white;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-weight:700;line-height:1.2;flex-shrink:0}
+.card.red{color:#D85A30}
+.card.board{background:#f0f0ec;border-color:#ddd}
+.card.newc{border-color:#1D9E75 !important;background:#E8F7EE}
+.card.newc.red{color:#8B3A1D}
+.sep{width:1px;height:38px;background:#ddd;margin:0 3px;flex-shrink:0}
+
+/* ── Info Box ── */
+.info-box{display:grid;grid-template-columns:1fr auto;gap:.75rem;margin-bottom:.875rem;padding:.875rem;background:#f8f8f5;border-radius:10px;border:1px solid #eee;align-items:start}
+.info-pot-stack{font-size:13px;color:#555;line-height:1.8}
+.info-pot-stack strong{color:#1a1a1a}
+
+/* ── Sizing Panel ── */
+.sizing-panel{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.sz-item{background:white;border-radius:6px;padding:.4rem .5rem;text-align:center;border:1px solid #eee}
+.sz-item.highlight{border-color:#AFA9EC;background:#EEEDFE}
+.sz-lbl{font-size:10px;color:#bbb;font-weight:500;margin-bottom:2px}
+.sz-val{font-size:14px;font-weight:700;color:#1a1a1a}
+.sz-item.highlight .sz-val{color:#3C3489}
+
+/* ── Villain Action ── */
+.villain-box{padding:.625rem 1rem;border-radius:8px;margin-bottom:.875rem;font-size:13px;border:1px solid #e8e8e3;background:#fafaf7;color:#555;display:flex;align-items:center;gap:8px}
+.villain-box .v-icon{font-size:16px;flex-shrink:0}
+.villain-box .v-bet{font-weight:700;color:#3C3489;margin-left:4px}
+
+/* ── Equity Bar ── */
+.eq-wrap{margin-bottom:.875rem}
+.eq-row{display:flex;align-items:center;gap:8px}
+.eq-lbl{font-size:11px;color:#bbb;width:28px;flex-shrink:0}
+.eq-bar{flex:1;height:14px;border-radius:7px;background:#eee;overflow:hidden;display:flex}
+.eq-hero{background:#1D9E75;height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:600;transition:width .4s}
+.eq-vill{background:#E24B4A;flex:1;height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:600}
+.eq-note{font-size:11px;text-align:center;margin-top:3px;font-weight:500}
+
+/* ── Action Buttons ── */
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:.875rem}
+.abtn{padding:8px 18px;border-radius:8px;border:1px solid #ddd;background:white;color:#1a1a1a;cursor:pointer;font-size:13px;font-weight:600;transition:all .12s}
+.abtn:hover{background:#f5f5f0}
+.abtn.fold{border-color:#F09595;color:#A32D2D}
+.abtn.call{border-color:#85B7EB;color:#0C447C}
+.abtn.check{border-color:#ccc;color:#666}
+.abtn.raise,.abtn.bet{border-color:#5DCAA5;color:#085041}
+
+/* ── Feedback ── */
+.feedback{display:none;padding:.875rem 1rem;border-radius:8px;margin-bottom:.875rem;font-size:13px;line-height:1.65;border:1px solid}
+.feedback.show{display:block}
+.feedback.ok{background:#EAF3DE;color:#27500A;border-color:#97C459}
+.feedback.no{background:#FCEBEB;color:#7A1F1F;border-color:#F09595}
+
+/* ── Summary ── */
+.summary-wrap{padding:0}
+.sum-header{display:flex;align-items:center;gap:12px;margin-bottom:1rem}
+.sum-dots{display:flex;gap:4px}
+.sum-dot{width:10px;height:10px;border-radius:50%}
+.sum-dot.ok{background:#1D9E75}
+.sum-dot.no{background:#E24B4A}
+.sum-pct{font-size:26px;font-weight:700}
+.sum-sub{font-size:13px;color:#888}
+.villain-read{background:#FAEEDA;border:1px solid #EF9F27;border-radius:8px;padding:.75rem;font-size:12px;color:#633806;margin-bottom:.875rem;line-height:1.6}
+.sum-street{display:flex;gap:8px;align-items:flex-start;padding:.5rem .625rem;border-radius:8px;background:#f8f8f5;margin-bottom:.4rem}
+.sum-st-lbl{font-size:11px;color:#bbb;width:40px;flex-shrink:0;padding-top:2px;font-weight:500}
+.sum-st-body{flex:1}
+.sum-tags{display:flex;gap:5px;margin-bottom:3px}
+.sum-tag{padding:1px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.sum-tag.ok{background:#EAF3DE;color:#27500A}
+.sum-tag.no{background:#FCEBEB;color:#7A1F1F}
+.sum-tag.gto{background:#EEEDFE;color:#3C3489}
+.sum-reason{font-size:11px;color:#888;line-height:1.55}
+.sum-actions{display:flex;gap:8px;margin-top:.875rem}
+
+/* ── Tools ── */
+.tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem}
+@media(max-width:520px){.tools-grid{grid-template-columns:1fr}}
+.tool-card{background:white;border:1px solid #e8e8e3;border-radius:12px;padding:1.25rem}
+.tool-title{font-size:13px;font-weight:600;margin-bottom:.875rem}
+.inp-row{display:flex;align-items:center;gap:8px;margin-bottom:.6rem}
+.inp-row label{width:88px;color:#666;font-size:12px;flex-shrink:0}
+.inp-row input{width:78px;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;color:#1a1a1a;background:white}
+.inp-row .unit{font-size:11px;color:#bbb}
+.tool-result{background:#f8f8f5;border-radius:8px;padding:.75rem;font-size:13px;line-height:1.9;margin-top:.625rem}
+.tr-num{font-size:19px;font-weight:700;color:#1D9E75}
+
+/* ── Misc ── */
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid #ddd;border-top-color:#534AB7;border-radius:50%;animation:spin .6s linear infinite;margin-left:6px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{color:#bbb;font-size:13px;text-align:center;padding:2.5rem 1rem}
+</style>
+</head>
+<body>
+
+<!-- Auth Modal -->
+<div class="modal-bg" id="authModal">
+  <div class="modal-box">
+    <h3 id="authTitle">登录</h3>
+    <div class="auth-err" id="authErr"></div>
+    <div id="regField" style="display:none">
+      <div class="field"><label>用户名 Username</label><input type="text" id="inpUser" placeholder="2–30 characters"></div>
+    </div>
+    <div class="field"><label>邮箱 Email</label><input type="email" id="inpEmail" placeholder="your@email.com"></div>
+    <div class="field"><label>密码 Password</label><input type="password" id="inpPass" placeholder="min 6 characters"></div>
+    <button class="btn primary full" id="authSubmit" onclick="submitAuth()">登录</button>
+    <div class="auth-switch" id="authSwitch" onclick="toggleAuthMode()">没有账号？<span>注册</span></div>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <span class="logo">🃏 GTO Trainer</span>
+  <a href="/" class="active">训练</a>
+  <a href="/stats">统计</a>
+  <a href="/info">词典</a>
+  <div class="lang-toggle">
+    <button class="lang-btn active" data-lang="zh" onclick="setLang('zh')">中文</button>
+    <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- Top bar: auth + session -->
+  <div class="top-bar">
+    <div id="userChip"></div>
+    <button class="btn" id="btnLogin" onclick="openAuth()">登录 / 注册</button>
+    <button class="btn danger" id="btnLogout" style="display:none" onclick="logout()">退出</button>
+    <div id="sessChip"></div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn primary" id="btnStart" onclick="startSession()">开始训练</button>
+      <button class="btn danger" id="btnEnd" onclick="endSession()" disabled>结束本轮</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-n" id="sTotal">—</div><div class="stat-l">决策总数</div></div>
+    <div class="stat-card"><div class="stat-n" id="sCorrect" style="color:#1D9E75">—</div><div class="stat-l">正确</div></div>
+    <div class="stat-card"><div class="stat-n" id="sPct" style="color:#534AB7">—</div><div class="stat-l">正确率</div></div>
+    <div class="stat-card"><div class="stat-n" id="sSess">—</div><div class="stat-l">训练场次</div></div>
+  </div>
+
+  <!-- Archetype picker -->
+  <div class="sec-label">对手类型</div>
+  <div class="ap-row" id="apRow"></div>
+
+  <!-- Opponent panel -->
+  <div class="opp-panel" id="oppPanel">
+    <div class="opp-hdr" onclick="toggleOpp()">
+      <div class="opp-avatar" id="oppAvatar"></div>
+      <div class="opp-info">
+        <div class="opp-name" id="oppName"></div>
+        <div class="opp-desc" id="oppDesc"></div>
+      </div>
+      <div class="opp-tags" id="oppTags"></div>
+      <span class="chevron up" id="oppChev">&#8964;</span>
+    </div>
+    <div class="opp-body open" id="oppBody">
+      <div class="opp-stats" id="oppStats"></div>
+      <div class="signals">
+        <div class="sig-ttl">关键信号</div>
+        <div id="oppSigs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Street progress -->
+  <div class="progress-bar-wrap" id="progressWrap">
+    <div class="sp-steps" id="spSteps"></div>
+    <div class="sp-lbls" id="spLbls"></div>
+    <div class="hist-list" id="histList"></div>
+  </div>
+
+  <!-- Scenario card -->
+  <div class="scenario-card" id="scenarioCard">
+    <div class="empty-state">点击「开始训练」发牌</div>
+  </div>
+
+  <!-- GTO Calculators -->
+  <div class="sec-label" style="margin-top:1.5rem">GTO 计算工具</div>
+  <div class="tools-grid">
+    <div class="tool-card">
+      <div class="tool-title">底池赔率</div>
+      <div class="inp-row"><label>底池</label><input type="number" id="tPot" value="100" oninput="calcOdds()"><span class="unit">bb</span></div>
+      <div class="inp-row"><label>对手下注</label><input type="number" id="tBet" value="50" oninput="calcOdds()"><span class="unit">bb</span></div>
+      <div class="inp-row"><label>我的权益</label><input type="number" id="tEq" placeholder="可选" oninput="calcOdds()"><span class="unit">%</span></div>
+      <div class="tool-result" id="oddsOut">—</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-title">EV 计算器</div>
+      <div class="inp-row"><label>底池</label><input type="number" id="evPot" value="100" oninput="calcEV()"><span class="unit">bb</span></div>
+      <div class="inp-row"><label>下注额</label><input type="number" id="evBet" value="50" oninput="calcEV()"><span class="unit">bb</span></div>
+      <div class="inp-row"><label>对手弃牌率</label><input type="number" id="evFold" value="40" oninput="calcEV()"><span class="unit">%</span></div>
+      <div class="inp-row"><label>被跟注权益</label><input type="number" id="evEq" value="30" oninput="calcEV()"><span class="unit">%</span></div>
+      <div class="tool-result" id="evOut">—</div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script src="/static/i18n.js"></script>
+<script>
+// ─── Constants ────────────────────────────────────────────
+const AMETA = {
+  fish:            {icon:'🐟', zh:'鱼型',     en:'Fish',           dz:'入池太多、弃牌太多',          de:'Loose passive, folds too much',  color:'#E6F1FB', tc:'#0C447C', dot:'#85B7EB'},
+  calling_station: {icon:'📞', zh:'站型',     en:'Calling Station',dz:'几乎不弃牌、WTSD极高',         de:'Never folds, very high WTSD',    color:'#FAECE7', tc:'#712B13', dot:'#F09595'},
+  tag:             {icon:'🎯', zh:'TAG 紧凶', en:'TAG',             dz:'入池率低、加注率高',            de:'Tight aggressive, strong ranges', color:'#EAF3DE', tc:'#27500A', dot:'#97C459'},
+  lag:             {icon:'🔥', zh:'LAG 松凶', en:'LAG',             dz:'入池率高、加注频繁',            de:'Loose aggressive, wide 3-bet',   color:'#FAEEDA', tc:'#633806', dot:'#EF9F27'},
+  nit:             {icon:'🪨', zh:'Nit 超紧', en:'Nit',             dz:'入池率极低、只玩顶牌',          de:'Extremely tight, premium only',  color:'#EEEDFE', tc:'#3C3489', dot:'#AFA9EC'},
+};
+const STREETS = ['preflop','flop','turn','river'];
+const BC = {preflop:'badge-pre',flop:'badge-flop',turn:'badge-turn',river:'badge-river'};
+
+// ─── State ────────────────────────────────────────────────
+let lang = localStorage.getItem('gto_lang') || 'zh';
+let authToken = localStorage.getItem('gto_token') || null;
+let currentUser = JSON.parse(localStorage.getItem('gto_user') || 'null');
+let authMode = 'login';
+let sessionId = null;
+let selectedArch = '';
+let currentHand = null;
+let streetHistory = [];
+let oppOpen = true;
+
+// ─── i18n helpers ─────────────────────────────────────────
+function sName(s){ return ({preflop:{zh:'翻前',en:'Preflop'},flop:{zh:'翻牌',en:'Flop'},turn:{zh:'转牌',en:'Turn'},river:{zh:'河牌',en:'River'}})[s]?.[lang] || s; }
+function aLabel(a){ return ({fold:{zh:'弃牌',en:'Fold'},call:{zh:'跟注',en:'Call'},check:{zh:'过牌',en:'Check'},raise:{zh:'加注',en:'Raise'},bet:{zh:'下注',en:'Bet'},allin:{zh:'全押',en:'All-in'},'3bet':{zh:'3-Bet',en:'3-Bet'},'4bet':{zh:'4-Bet',en:'4-Bet'}})[a]?.[lang] || a; }
+function setLang(l){
+  lang = l;
+  localStorage.setItem('gto_lang', l);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === l));
+  buildApRow();
+  if (currentHand) renderOpp(currentHand.opponent);
+}
+
+// ─── Auth headers ─────────────────────────────────────────
+function authH(extra){
+  const h = {'Content-Type':'application/json', ...extra};
+  if (authToken) h['Authorization'] = 'Bearer ' + authToken;
+  return h;
+}
+
+// ─── Auth UI ──────────────────────────────────────────────
+function openAuth(){ document.getElementById('authModal').classList.add('open'); }
+function closeAuth(){ document.getElementById('authModal').classList.remove('open'); }
+function toggleAuthMode(){
+  authMode = authMode === 'login' ? 'register' : 'login';
+  const isReg = authMode === 'register';
+  document.getElementById('authTitle').textContent  = isReg ? '注册 / Register' : '登录 / Login';
+  document.getElementById('authSubmit').textContent = isReg ? '注册' : '登录';
+  document.getElementById('regField').style.display = isReg ? 'block' : 'none';
+  document.getElementById('authSwitch').innerHTML   = isReg ? '已有账号？<span>登录</span>' : '没有账号？<span>注册</span>';
+  document.getElementById('authErr').style.display  = 'none';
+}
+async function submitAuth(){
+  const email = document.getElementById('inpEmail').value.trim();
+  const pass  = document.getElementById('inpPass').value;
+  const errEl = document.getElementById('authErr');
+  errEl.style.display = 'none';
+  const body = authMode === 'register'
+    ? {username: document.getElementById('inpUser').value.trim(), email, password: pass}
+    : {email, password: pass};
+  const res  = await fetch('/api/auth/' + authMode, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const data = await res.json();
+  if (!res.ok){ errEl.textContent = data.error || 'Error'; errEl.style.display = 'block'; return; }
+  authToken   = data.token;
+  currentUser = {id: data.user_id, username: data.username};
+  localStorage.setItem('gto_token', authToken);
+  localStorage.setItem('gto_user',  JSON.stringify(currentUser));
+  closeAuth();
+  updateUserUI();
+  loadStats();
+}
+function logout(){
+  authToken = null; currentUser = null;
+  localStorage.removeItem('gto_token'); localStorage.removeItem('gto_user');
+  updateUserUI(); loadStats();
+}
+function updateUserUI(){
+  const chip   = document.getElementById('userChip');
+  const btnL   = document.getElementById('btnLogin');
+  const btnOut = document.getElementById('btnLogout');
+  if (currentUser){
+    chip.innerHTML = `<span class="user-chip">👤 ${currentUser.username}</span>`;
+    btnL.style.display = 'none'; btnOut.style.display = 'inline-block';
+  } else {
+    chip.innerHTML = ''; btnL.style.display = 'inline-block'; btnOut.style.display = 'none';
+  }
+}
+document.getElementById('authModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAuth(); });
+
+// ─── Session ──────────────────────────────────────────────
+async function startSession(){
+  const res  = await fetch('/api/session/start', {method:'POST', headers:authH()});
+  const data = await res.json();
+  sessionId  = data.session_id;
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnEnd').disabled   = false;
+  document.getElementById('sessChip').innerHTML = `<span class="session-chip">Session #${sessionId}</span>`;
+  startNewHand();
+}
+async function endSession(){
+  if (!sessionId) return;
+  await fetch('/api/session/end', {method:'POST', headers:authH(), body:JSON.stringify({session_id: sessionId})});
+  sessionId = null; currentHand = null; streetHistory = [];
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnEnd').disabled   = true;
+  document.getElementById('sessChip').innerHTML = '';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('scenarioCard').innerHTML = '<div class="empty-state">点击「开始训练」发牌</div>';
+  loadStats();
+}
+
+// ─── Archetype picker ─────────────────────────────────────
+function buildApRow(){
+  const row = document.getElementById('apRow');
+  row.innerHTML = '';
+  const mkBtn = (label, val, color, tc) => {
+    const btn = document.createElement('div');
+    btn.className = 'ap-btn' + (selectedArch === val ? ' active' : '');
+    btn.style.cssText = selectedArch === val
+      ? `background:${color};color:${tc};border-color:${tc}55`
+      : '';
+    btn.textContent = label;
+    btn.onclick = () => { selectedArch = val; buildApRow(); };
+    row.appendChild(btn);
+  };
+  mkBtn(lang === 'zh' ? '🎲 随机' : '🎲 Random', '', '#f0f0f0', '#555');
+  Object.entries(AMETA).forEach(([k,v]) => mkBtn(v.icon+' '+(lang==='zh'?v.zh:v.en), k, v.color, v.tc));
+}
+
+// ─── Opponent panel ───────────────────────────────────────
+function renderOpp(opp){
+  if (!opp) return;
+  const m = AMETA[opp.archetype] || {};
+  document.getElementById('oppPanel').className = 'opp-panel show';
+  const av = document.getElementById('oppAvatar');
+  av.textContent = opp.emoji || m.icon || '?';
+  av.style.cssText = `background:${opp.color};color:${opp.text_color};width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0`;
+  document.getElementById('oppName').textContent = lang==='zh' ? (opp.name||m.zh) : (m.en||opp.name);
+  document.getElementById('oppDesc').textContent = lang==='zh' ? (opp.description||m.dz) : (m.de||opp.description);
+  const s = opp.stats||{};
+  document.getElementById('oppTags').innerHTML = [
+    {l:'VPIP', v:s.vpip+'%'}, {l:'Fold Cbet', v:s.fold_to_cbet+'%'}
+  ].map(b=>`<span class="opp-tag" style="background:${opp.color};color:${opp.text_color}">${b.l} ${b.v}</span>`).join('');
+
+  const statDefs = [
+    {l:'VPIP',v:s.vpip+'%',w:s.vpip},{l:'PFR',v:s.pfr+'%',w:s.pfr},
+    {l:'Fold Cbet',v:s.fold_to_cbet+'%',w:s.fold_to_cbet},{l:'Fold 3bet',v:s.fold_to_3bet+'%',w:s.fold_to_3bet},
+    {l:'WTSD',v:s.wtsd+'%',w:s.wtsd},{l:'C-bet',v:s.cbet+'%',w:s.cbet},
+    {l:'3-bet',v:s.three_bet+'%',w:s.three_bet},{l:'AGG',v:s.aggression,w:Math.min((s.aggression||0)*20,100)},
+  ];
+  document.getElementById('oppStats').innerHTML = statDefs.map(d=>`
+    <div class="opp-stat">
+      <div class="os-val">${d.v}</div><div class="os-lbl">${d.l}</div>
+      <div class="os-bar"><div class="os-fill" style="width:${Math.min(Math.round(d.w||0),100)}%;background:${m.dot||'#ccc'};height:100%;border-radius:2px"></div></div>
+    </div>`).join('');
+
+  // Signals
+  const ins = buildSignals(s);
+  document.getElementById('oppSigs').innerHTML = ins.length
+    ? ins.map(i=>`<div class="sig-row"><span class="sig-stat">${i.stat}</span><span class="sig-badge" style="color:${i.color}">${i.signal}</span><span class="sig-tip">→ ${lang==='zh'?i.a:i.ae}</span></div>`).join('')
+    : `<div style="color:#bbb;font-size:12px">${lang==='zh'?'暂无特别信号':'No notable signals'}</div>`;
+
+  document.getElementById('oppBody').className = 'opp-body' + (oppOpen?' open':'');
+  document.getElementById('oppChev').className = 'chevron' + (oppOpen?' up':'');
+}
+
+function buildSignals(s){
+  const L=lang==='en'; const ins=[];
+  if (s.fold_to_cbet>55) ins.push({stat:`Fold to Cbet: ${s.fold_to_cbet}%`,signal:L?'↑ Folds too much':'↑ 弃牌太多',a:'增加bluff频率',ae:'Bluff more',color:'#1D9E75'});
+  else if (s.fold_to_cbet<35) ins.push({stat:`Fold to Cbet: ${s.fold_to_cbet}%`,signal:L?'↓ Calls too much':'↓ 跟注太多',a:'停止bluff，只下注强牌',ae:'Value only — no bluffs',color:'#E24B4A'});
+  if (s.fold_to_3bet>65) ins.push({stat:`Fold to 3bet: ${s.fold_to_3bet}%`,signal:L?'↑ Folds to 3-bets':'↑ 面对3bet太弱',a:'扩大3bet bluff',ae:'Widen 3-bet bluffs',color:'#1D9E75'});
+  else if (s.fold_to_3bet<40) ins.push({stat:`Fold to 3bet: ${s.fold_to_3bet}%`,signal:L?'↓ Calls 3-bets wide':'↓ 面对3bet不弃牌',a:'只用价值牌3bet',ae:'3-bet value only',color:'#E24B4A'});
+  if (s.wtsd>38) ins.push({stat:`WTSD: ${s.wtsd}%`,signal:L?'↑ Goes to showdown a lot':'↑ 喜欢走到摊牌',a:'薄价值注有效，停止bluff',ae:'Thin value works — no bluffs',color:'#E24B4A'});
+  else if (s.wtsd<22) ins.push({stat:`WTSD: ${s.wtsd}%`,signal:L?'↓ Folds often mid-hand':'↓ 不喜欢摊牌',a:'River bluff有效',ae:'River bluffs effective',color:'#1D9E75'});
+  return ins;
+}
+
+function toggleOpp(){
+  oppOpen = !oppOpen;
+  document.getElementById('oppBody').className = 'opp-body' + (oppOpen?' open':'');
+  document.getElementById('oppChev').className = 'chevron' + (oppOpen?' up':'');
+}
+
+// ─── Progress bar ─────────────────────────────────────────
+function updateProgress(hand){
+  const wrap = document.getElementById('progressWrap');
+  wrap.style.display = 'block';
+  const cur = hand.current_street;
+  const ci  = STREETS.indexOf(cur);
+  document.getElementById('spSteps').innerHTML = STREETS.map((_,i)=>
+    `<div class="sp-step ${i<ci?'done':i===ci?'active':''}"></div>`).join('');
+  document.getElementById('spLbls').innerHTML = STREETS.map((s,i)=>
+    `<div class="sp-lbl ${i<ci?'done':i===ci?'active':''}">${sName(s)}</div>`).join('');
+  document.getElementById('histList').innerHTML = streetHistory.map(h=>`
+    <div class="hist-row">
+      <span class="hist-st">${sName(h.street)}</span>
+      <span class="hist-vill">${lang==='en'?(h.ve||h.vz||'—'):(h.vz||'—')}</span>
+      <span class="hist-act ${h.ok===true?'ok':h.ok===false?'no':'pending'}">${aLabel(h.action)}</span>
+    </div>`).join('');
+}
+
+// ─── Start new hand ───────────────────────────────────────
+async function startNewHand(){
+  if (!sessionId) return;
+  streetHistory = [];
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('scenarioCard').innerHTML = `<div class="empty-state">发牌中...<span class="spinner"></span></div>`;
+  const body = {session_id: sessionId};
+  if (selectedArch) body.archetype = selectedArch;
+  const res  = await fetch('/api/hand/start', {method:'POST', headers:authH(), body:JSON.stringify(body)});
+  if (!res.ok){ document.getElementById('scenarioCard').innerHTML = '<div class="empty-state">加载失败，请重试</div>'; return; }
+  const hand = await res.json();
+  currentHand = hand;
+  renderOpp(hand.opponent);
+  updateProgress(hand);
+  renderStreet(hand);
+  loadStats();
+}
+
+// ─── Render current street ────────────────────────────────
+function renderStreet(hand){
+  const streets = hand.streets;
+  if (!streets || !streets.length) return;
+  const cur = streets[streets.length - 1];
+
+  // Cards
+  let cardsHTML = (hand.hero_hole||[]).map(c=>
+    `<div class="card ${c.color==='red'?'red':''}">${c.rank}<br>${c.symbol}</div>`
+  ).join('');
+  if (hand.board && hand.board.length){
+    cardsHTML += '<div class="sep"></div>';
+    const newSet = new Set((cur.new_cards||[]).map(c=>c.rank+c.suit));
+    cardsHTML += hand.board.map(c=>{
+      const isNew = newSet.has(c.rank+c.suit);
+      return `<div class="card board ${isNew?'newc':''} ${c.color==='red'?'red':''}">${c.rank}<br>${c.symbol}</div>`;
+    }).join('');
+  }
+
+  // Info box
+  const sz = cur.bet_sizing || {};
+  let sizingHTML = '';
+  if (sz.villain_bet){
+    // Facing a bet
+    sizingHTML = `
+      <div class="sizing-panel">
+        <div class="sz-item highlight"><div class="sz-lbl">${lang==='zh'?'对手下注':'Villain bet'}</div><div class="sz-val">${sz.villain_bet}bb</div></div>
+        <div class="sz-item highlight"><div class="sz-lbl">${lang==='zh'?'需要权益':'Need equity'}</div><div class="sz-val">${sz.needed_equity}%</div></div>
+        <div class="sz-item"><div class="sz-lbl">${lang==='zh'?'底池赔率':'Pot odds'}</div><div class="sz-val">${sz.pot_odds}:1</div></div>
+        <div class="sz-item"><div class="sz-lbl">${lang==='zh'?'跟注额':'Call amount'}</div><div class="sz-val">${sz.call_amount}bb</div></div>
+      </div>`;
+  } else if (sz.pot){
+    // We act first
+    sizingHTML = `
+      <div class="sizing-panel">
+        <div class="sz-item"><div class="sz-lbl">${lang==='zh'?'底池':'Pot'}</div><div class="sz-val">${sz.pot}bb</div></div>
+        <div class="sz-item"><div class="sz-lbl">${lang==='zh'?'下注33%':'Bet 33%'}</div><div class="sz-val">${sz.bet_33}bb</div></div>
+        <div class="sz-item highlight"><div class="sz-lbl">${lang==='zh'?'下注50%':'Bet 50%'}</div><div class="sz-val">${sz.bet_50}bb</div></div>
+        <div class="sz-item highlight"><div class="sz-lbl">${lang==='zh'?'下注75%':'Bet 75%'}</div><div class="sz-val">${sz.bet_75}bb</div></div>
+      </div>`;
+  }
+
+  // Villain action
+  let villainHTML = '';
+  const va = cur.villain_action;
+  if (va && va.action !== 'check'){
+    const vd = lang==='en' ? va.desc_en : va.desc_zh;
+    const betAmt = sz.villain_bet ? `<span class="v-bet">${sz.villain_bet}bb</span>` : '';
+    villainHTML = `<div class="villain-box"><span class="v-icon">🎭</span>${vd}${betAmt}</div>`;
+  }
+
+  // Equity
+  let eqHTML = '';
+  if (cur.hero_equity != null){
+    const h = cur.hero_equity, v = Math.round(100-h);
+    const col = h>=55?'#1D9E75':h>=45?'#EF9F27':'#E24B4A';
+    eqHTML = `<div class="eq-wrap">
+      <div class="eq-row">
+        <span class="eq-lbl">You</span>
+        <div class="eq-bar"><div class="eq-hero" style="width:${h}%">${h}%</div><div class="eq-vill">${v}%</div></div>
+        <span class="eq-lbl" style="text-align:right">Villain</span>
+      </div>
+      <div class="eq-note" style="color:${col}">${lang==='zh'?'你的权益':'Your equity'}: ${h}%</div>
+    </div>`;
+  }
+
+  // Actions
+  const acts = ['fold','call','check','raise','bet'];
+
+  // Preflop: show pot info in info-box
+  const potInfo = cur.street === 'preflop'
+    ? `<strong>${lang==='zh'?'底池':'Pot'}:</strong> ${cur.pot}bb &nbsp; <strong>${lang==='zh'?'筹码':'Stack'}:</strong> ${cur.stack}bb`
+    : `<strong>${lang==='zh'?'底池':'Pot'}:</strong> ${cur.pot}bb &nbsp; <strong>${lang==='zh'?'筹码':'Stack'}:</strong> ${cur.stack}bb`;
+
+  document.getElementById('scenarioCard').innerHTML = `
+    <div class="sc-meta">
+      <span class="badge ${BC[cur.street]}">${sName(cur.street)}</span>
+      <span class="sc-pos">${hand.hero_pos} vs ${hand.villain_pos}</span>
+    </div>
+    <div class="hand-label">${lang==='zh'?'你的手牌':'Your hand'} <strong>${hand.hand_str}</strong></div>
+    <div class="cards-row">${cardsHTML}</div>
+    <div class="info-box">
+      <div class="info-pot-stack">${potInfo}</div>
+      ${sizingHTML}
+    </div>
+    ${eqHTML}
+    ${villainHTML}
+    <div class="actions">${acts.map(a=>`<button class="abtn ${a}" onclick="submitAction('${a}')">${aLabel(a)}</button>`).join('')}</div>
+    <div class="feedback" id="fb"></div>
+    <div id="nextRow" style="display:none;margin-top:.75rem">
+      <button class="btn primary" id="nextBtn" onclick="continueHand()"></button>
+    </div>`;
+}
+
+// ─── Submit action ────────────────────────────────────────
+async function submitAction(action){
+  if (!currentHand) return;
+  // Disable buttons
+  document.querySelectorAll('.abtn').forEach(b=>b.disabled=true);
+
+  const cur = currentHand.streets[currentHand.streets.length-1];
+  const expAction = cur.exploit_action || cur.gto_action || 'check';
+  const isOk = normalizeAction(action) === normalizeAction(expAction);
+  const reason = lang==='en' ? (cur.exploit_reason_en||cur.gto_reason_en) : (cur.exploit_reason_zh||cur.gto_reason_zh);
+
+  // Optimistic history entry
+  streetHistory.push({street:cur.street, vz:cur.villain_action?.desc_zh||'', ve:cur.villain_action?.desc_en||'', action, ok:null});
+
+  const res  = await fetch('/api/hand/action', {
+    method:'POST', headers:authH(),
+    body:JSON.stringify({hand_id: currentHand.hand_id, action, session_id: sessionId})
+  });
+  const data = await res.json();
+
+  // Show feedback
+  const fb = document.getElementById('fb');
+  fb.className = 'feedback show ' + (isOk?'ok':'no');
+  fb.innerHTML = isOk
+    ? `<strong>${lang==='zh'?'正确！':'Correct!'}</strong> ${reason||''}`
+    : `<strong>${lang==='zh'?'GTO建议：':'GTO says: '}${aLabel(expAction)}</strong><br>${reason||''}`;
+
+  // Update history ok status
+  streetHistory[streetHistory.length-1].ok = isOk;
+
+  if (data.done){
+    showSummary(data.summary);
+    return;
+  }
+
+  currentHand = data.hand;
+  updateProgress(currentHand);
+
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.textContent = lang==='zh'
+    ? `继续 ${sName(currentHand.current_street)} →`
+    : `Continue ${sName(currentHand.current_street)} →`;
+  document.getElementById('nextRow').style.display = 'block';
+  loadStats();
+}
+
+function continueHand(){
+  if (!currentHand) return;
+  renderStreet(currentHand);
+}
+
+function normalizeAction(a){
+  return ['bet','raise','3bet','4bet','allin'].includes(a) ? 'aggressive' : a;
+}
+
+// ─── Summary ──────────────────────────────────────────────
+function showSummary(s){
+  document.getElementById('progressWrap').style.display = 'none';
+  const pct   = s.pct || 0;
+  const color = pct>=75?'#1D9E75':pct>=50?'#BA7517':'#A32D2D';
+  const dots  = (s.street_reviews||[]).map(r=>`<div class="sum-dot ${r.is_correct?'ok':'no'}"></div>`).join('');
+  const reads = s.villain_read;
+  const readTxt = lang==='en' ? (reads?.en||[]).join(' ') : (reads?.zh||[]).join(' ');
+  const readHTML = readTxt ? `<div class="villain-read">🔍 ${readTxt}</div>` : '';
+  const rows = (s.street_reviews||[]).map(r=>{
+    const reason = lang==='en' ? r.reason_en : r.reason_zh;
+    return `<div class="sum-street">
+      <div class="sum-st-lbl">${sName(r.street)}</div>
+      <div class="sum-st-body">
+        <div class="sum-tags">
+          <span class="sum-tag ${r.is_correct?'ok':'no'}">${aLabel(r.hero_action)}</span>
+          ${!r.is_correct?`<span class="sum-tag gto">GTO: ${aLabel(r.exploit_action||r.gto_action)}</span>`:''}
+        </div>
+        <div class="sum-reason">${reason||''}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('scenarioCard').innerHTML = `
+    <div class="summary-wrap">
+      <div class="sum-header">
+        <div class="sum-dots">${dots}</div>
+        <span class="sum-pct" style="color:${color}">${pct}%</span>
+        <span class="sum-sub">${s.correct}/${s.total} ${lang==='zh'?'正确':'correct'}</span>
+      </div>
+      <div style="font-size:13px;color:#888;margin-bottom:.875rem">${s.hand_str} vs ${s.opponent_name}</div>
+      ${readHTML}
+      ${rows}
+      <div class="sum-actions">
+        <button class="btn primary" onclick="startNewHand()">${lang==='zh'?'下一手牌 →':'Next hand →'}</button>
+        <button class="btn" onclick="endSession()">${lang==='zh'?'结束本轮':'End session'}</button>
+      </div>
+    </div>`;
+  loadStats();
+}
+
+// ─── Stats ────────────────────────────────────────────────
+async function loadStats(){
+  const res = await fetch('/api/stats', {headers:authH()});
+  if (!res.ok) return;
+  const d = await res.json();
+  document.getElementById('sTotal').textContent   = d.total||0;
+  document.getElementById('sCorrect').textContent  = d.correct||0;
+  document.getElementById('sPct').textContent      = d.total ? d.pct+'%' : '—';
+  document.getElementById('sSess').textContent     = d.sessions ? d.sessions.length : 0;
+}
+
+// ─── Calculators ──────────────────────────────────────────
+async function calcOdds(){
+  const pot=parseFloat(document.getElementById('tPot').value)||0;
+  const bet=parseFloat(document.getElementById('tBet').value)||0;
+  const eq =parseFloat(document.getElementById('tEq').value);
+  if (!pot||!bet){document.getElementById('oddsOut').textContent='—';return;}
+  const res=await fetch('/api/calc/pot_odds',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pot,bet})});
+  const d=await res.json();
+  const diff=isNaN(eq)?null:parseFloat((eq-d.needed_equity).toFixed(1));
+  const verdict=diff===null?'':diff>=0
+    ?`<br><span style="color:#1D9E75;font-weight:600">${lang==='zh'?'跟注合算':'Profitable call'} (+${diff}%)</span>`
+    :`<br><span style="color:#E24B4A;font-weight:600">${lang==='zh'?'跟注不合算':'Unprofitable call'} (${diff}%)</span>`;
+  document.getElementById('oddsOut').innerHTML=
+    `${lang==='zh'?'需要权益':'Need equity'}: <span class="tr-num">${d.needed_equity}%</span><br>
+     ${lang==='zh'?'底池赔率':'Pot odds'}: ${d.pot_odds_ratio}:1<br>
+     ${lang==='zh'?'下注比例':'Bet size'}: ${d.bet_pct_of_pot}% pot${verdict}`;
+}
+
+async function calcEV(){
+  const pot=parseFloat(document.getElementById('evPot').value)||0;
+  const bet=parseFloat(document.getElementById('evBet').value)||0;
+  const fold=parseFloat(document.getElementById('evFold').value)||0;
+  const eq=parseFloat(document.getElementById('evEq').value)||0;
+  if (!pot){document.getElementById('evOut').textContent='—';return;}
+  const res=await fetch('/api/calc/ev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pot,bet,fold_pct:fold,equity_pct:eq})});
+  const d=await res.json();
+  const col=d.ev_bet>0?'#1D9E75':d.ev_bet>-2?'#EF9F27':'#E24B4A';
+  const bestMap={bet:lang==='zh'?'下注':'Bet',check:lang==='zh'?'过牌':'Check',fold:lang==='zh'?'弃牌':'Fold'};
+  document.getElementById('evOut').innerHTML=
+    `${lang==='zh'?'下注EV':'Bet EV'}: <span class="tr-num" style="color:${col}">${d.ev_bet}</span> bb<br>
+     ${lang==='zh'?'过牌EV':'Check EV'}: ${d.ev_check} bb<br>
+     ${lang==='zh'?'最优行动':'Best action'}: <strong>${bestMap[d.best_action]||d.best_action}</strong><br>
+     ${lang==='zh'?'GTO弃牌率':'GTO fold rate'}: ${d.gto_fold_rate}%`;
+}
+
+// ─── Init ─────────────────────────────────────────────────
+updateUserUI();
+buildApRow();
+calcOdds();
+calcEV();
+loadStats();
+</script>
+</body>
+</html>
