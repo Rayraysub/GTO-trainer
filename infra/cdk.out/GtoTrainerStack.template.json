@@ -1,0 +1,1568 @@
+{
+ "Resources": {
+  "GtoVpcECE154C5": {
+   "Type": "AWS::EC2::VPC",
+   "Properties": {
+    "CidrBlock": "10.0.0.0/16",
+    "EnableDnsHostnames": true,
+    "EnableDnsSupport": true,
+    "InstanceTenancy": "default",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/Resource"
+   }
+  },
+  "GtoVpcPublicSubnet1SubnetE97BF2CD": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": "us-west-1a",
+    "CidrBlock": "10.0.0.0/24",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/PublicSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PublicSubnet1/Subnet"
+   }
+  },
+  "GtoVpcPublicSubnet1RouteTableB372D969": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/PublicSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PublicSubnet1/RouteTable"
+   }
+  },
+  "GtoVpcPublicSubnet1RouteTableAssociationC1A61494": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "GtoVpcPublicSubnet1RouteTableB372D969"
+    },
+    "SubnetId": {
+     "Ref": "GtoVpcPublicSubnet1SubnetE97BF2CD"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PublicSubnet1/RouteTableAssociation"
+   }
+  },
+  "GtoVpcPublicSubnet1DefaultRoute3C88502B": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "GtoVpcIGW6DD52533"
+    },
+    "RouteTableId": {
+     "Ref": "GtoVpcPublicSubnet1RouteTableB372D969"
+    }
+   },
+   "DependsOn": [
+    "GtoVpcVPCGW99AE2741"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PublicSubnet1/DefaultRoute"
+   }
+  },
+  "GtoVpcPublicSubnet1EIPF4C4E575": {
+   "Type": "AWS::EC2::EIP",
+   "Properties": {
+    "Domain": "vpc",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/PublicSubnet1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PublicSubnet1/EIP"
+   }
+  },
+  "GtoVpcPublicSubnet1NATGateway8FBAC1E0": {
+   "Type": "AWS::EC2::NatGateway",
+   "Properties": {
+    "AllocationId": {
+     "Fn::GetAtt": [
+      "GtoVpcPublicSubnet1EIPF4C4E575",
+      "AllocationId"
+     ]
+    },
+    "SubnetId": {
+     "Ref": "GtoVpcPublicSubnet1SubnetE97BF2CD"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/PublicSubnet1"
+     }
+    ]
+   },
+   "DependsOn": [
+    "GtoVpcPublicSubnet1DefaultRoute3C88502B",
+    "GtoVpcPublicSubnet1RouteTableAssociationC1A61494"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PublicSubnet1/NATGateway"
+   }
+  },
+  "GtoVpcPublicSubnet2SubnetD56D10AD": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": "us-west-1c",
+    "CidrBlock": "10.0.1.0/24",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/PublicSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PublicSubnet2/Subnet"
+   }
+  },
+  "GtoVpcPublicSubnet2RouteTable12A21125": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/PublicSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PublicSubnet2/RouteTable"
+   }
+  },
+  "GtoVpcPublicSubnet2RouteTableAssociation7C061496": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "GtoVpcPublicSubnet2RouteTable12A21125"
+    },
+    "SubnetId": {
+     "Ref": "GtoVpcPublicSubnet2SubnetD56D10AD"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PublicSubnet2/RouteTableAssociation"
+   }
+  },
+  "GtoVpcPublicSubnet2DefaultRoute2AE6E361": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "GtoVpcIGW6DD52533"
+    },
+    "RouteTableId": {
+     "Ref": "GtoVpcPublicSubnet2RouteTable12A21125"
+    }
+   },
+   "DependsOn": [
+    "GtoVpcVPCGW99AE2741"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PublicSubnet2/DefaultRoute"
+   }
+  },
+  "GtoVpcPrivateSubnet1Subnet97AD74A4": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": "us-west-1a",
+    "CidrBlock": "10.0.2.0/24",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Private"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Private"
+     },
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/PrivateSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PrivateSubnet1/Subnet"
+   }
+  },
+  "GtoVpcPrivateSubnet1RouteTable9ACF0DA6": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/PrivateSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PrivateSubnet1/RouteTable"
+   }
+  },
+  "GtoVpcPrivateSubnet1RouteTableAssociation16628481": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "GtoVpcPrivateSubnet1RouteTable9ACF0DA6"
+    },
+    "SubnetId": {
+     "Ref": "GtoVpcPrivateSubnet1Subnet97AD74A4"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PrivateSubnet1/RouteTableAssociation"
+   }
+  },
+  "GtoVpcPrivateSubnet1DefaultRouteB5C4C84D": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "NatGatewayId": {
+     "Ref": "GtoVpcPublicSubnet1NATGateway8FBAC1E0"
+    },
+    "RouteTableId": {
+     "Ref": "GtoVpcPrivateSubnet1RouteTable9ACF0DA6"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PrivateSubnet1/DefaultRoute"
+   }
+  },
+  "GtoVpcPrivateSubnet2Subnet1774643F": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": "us-west-1c",
+    "CidrBlock": "10.0.3.0/24",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Private"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Private"
+     },
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/PrivateSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PrivateSubnet2/Subnet"
+   }
+  },
+  "GtoVpcPrivateSubnet2RouteTableD24E38D1": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/PrivateSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PrivateSubnet2/RouteTable"
+   }
+  },
+  "GtoVpcPrivateSubnet2RouteTableAssociation3BE9FE36": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "GtoVpcPrivateSubnet2RouteTableD24E38D1"
+    },
+    "SubnetId": {
+     "Ref": "GtoVpcPrivateSubnet2Subnet1774643F"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PrivateSubnet2/RouteTableAssociation"
+   }
+  },
+  "GtoVpcPrivateSubnet2DefaultRoute052FB095": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "NatGatewayId": {
+     "Ref": "GtoVpcPublicSubnet1NATGateway8FBAC1E0"
+    },
+    "RouteTableId": {
+     "Ref": "GtoVpcPrivateSubnet2RouteTableD24E38D1"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/PrivateSubnet2/DefaultRoute"
+   }
+  },
+  "GtoVpcIsolatedSubnet1Subnet65F22DC1": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": "us-west-1a",
+    "CidrBlock": "10.0.4.0/24",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Isolated"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Isolated"
+     },
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/IsolatedSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/IsolatedSubnet1/Subnet"
+   }
+  },
+  "GtoVpcIsolatedSubnet1RouteTable8CFF9D76": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/IsolatedSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/IsolatedSubnet1/RouteTable"
+   }
+  },
+  "GtoVpcIsolatedSubnet1RouteTableAssociationF17C2F7E": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "GtoVpcIsolatedSubnet1RouteTable8CFF9D76"
+    },
+    "SubnetId": {
+     "Ref": "GtoVpcIsolatedSubnet1Subnet65F22DC1"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/IsolatedSubnet1/RouteTableAssociation"
+   }
+  },
+  "GtoVpcIsolatedSubnet2Subnet13A256E9": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": "us-west-1c",
+    "CidrBlock": "10.0.5.0/24",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Isolated"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Isolated"
+     },
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/IsolatedSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/IsolatedSubnet2/Subnet"
+   }
+  },
+  "GtoVpcIsolatedSubnet2RouteTable97C8AC98": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc/IsolatedSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/IsolatedSubnet2/RouteTable"
+   }
+  },
+  "GtoVpcIsolatedSubnet2RouteTableAssociationB9541800": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "GtoVpcIsolatedSubnet2RouteTable97C8AC98"
+    },
+    "SubnetId": {
+     "Ref": "GtoVpcIsolatedSubnet2Subnet13A256E9"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/IsolatedSubnet2/RouteTableAssociation"
+   }
+  },
+  "GtoVpcIGW6DD52533": {
+   "Type": "AWS::EC2::InternetGateway",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "GtoTrainerStack/GtoVpc"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/IGW"
+   }
+  },
+  "GtoVpcVPCGW99AE2741": {
+   "Type": "AWS::EC2::VPCGatewayAttachment",
+   "Properties": {
+    "InternetGatewayId": {
+     "Ref": "GtoVpcIGW6DD52533"
+    },
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoVpc/VPCGW"
+   }
+  },
+  "AlbSg1155C1BE": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "ALB security group",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "from 0.0.0.0/0:80",
+      "FromPort": 80,
+      "IpProtocol": "tcp",
+      "ToPort": 80
+     },
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "from 0.0.0.0/0:443",
+      "FromPort": 443,
+      "IpProtocol": "tcp",
+      "ToPort": 443
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/AlbSg/Resource"
+   }
+  },
+  "EcsSg17B4B0B3": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "ECS tasks security group",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/EcsSg/Resource"
+   }
+  },
+  "EcsSgfromGtoTrainerStackAlbSg1B51DB418000F464C8AF": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "from GtoTrainerStackAlbSg1B51DB41:8000",
+    "FromPort": 8000,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "EcsSg17B4B0B3",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "AlbSg1155C1BE",
+      "GroupId"
+     ]
+    },
+    "ToPort": 8000
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/EcsSg/from GtoTrainerStackAlbSg1B51DB41:8000"
+   }
+  },
+  "EcsSgfromGtoTrainerStackGtoServiceLBSecurityGroupB1EBAC7D8000DF82CBDF": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Load balancer to target",
+    "FromPort": 8000,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "EcsSg17B4B0B3",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "GtoServiceLBSecurityGroup57AE73AE",
+      "GroupId"
+     ]
+    },
+    "ToPort": 8000
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/EcsSg/from GtoTrainerStackGtoServiceLBSecurityGroupB1EBAC7D:8000"
+   }
+  },
+  "RdsSg7F9F43B6": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "RDS security group",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/RdsSg/Resource"
+   }
+  },
+  "RdsSgfromGtoTrainerStackEcsSg31704291543225306FC9": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "from GtoTrainerStackEcsSg31704291:5432",
+    "FromPort": 5432,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "RdsSg7F9F43B6",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "EcsSg17B4B0B3",
+      "GroupId"
+     ]
+    },
+    "ToPort": 5432
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/RdsSg/from GtoTrainerStackEcsSg31704291:5432"
+   }
+  },
+  "RedisSgFB48DCCD": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Redis security group",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/RedisSg/Resource"
+   }
+  },
+  "RedisSgfromGtoTrainerStackEcsSg31704291637973E5C3BF": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "from GtoTrainerStackEcsSg31704291:6379",
+    "FromPort": 6379,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "RedisSgFB48DCCD",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "EcsSg17B4B0B3",
+      "GroupId"
+     ]
+    },
+    "ToPort": 6379
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/RedisSg/from GtoTrainerStackEcsSg31704291:6379"
+   }
+  },
+  "DbSecret685A0FA5": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "GenerateSecretString": {
+     "ExcludePunctuation": true,
+     "GenerateStringKey": "password",
+     "PasswordLength": 32,
+     "SecretStringTemplate": "{\"username\": \"gto_admin\"}"
+    },
+    "Name": "gto-trainer/db-password"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/DbSecret/Resource"
+   }
+  },
+  "DbSecretAttachment0609CE05": {
+   "Type": "AWS::SecretsManager::SecretTargetAttachment",
+   "Properties": {
+    "SecretId": {
+     "Ref": "DbSecret685A0FA5"
+    },
+    "TargetId": {
+     "Ref": "GtoDbB4931191"
+    },
+    "TargetType": "AWS::RDS::DBInstance"
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/DbSecret/Attachment/Resource"
+   }
+  },
+  "JwtSecretB8834B39": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "GenerateSecretString": {
+     "ExcludePunctuation": true,
+     "PasswordLength": 64
+    },
+    "Name": "gto-trainer/jwt-secret"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/JwtSecret/Resource"
+   }
+  },
+  "FlaskSecretDB73E49F": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "GenerateSecretString": {
+     "ExcludePunctuation": true,
+     "PasswordLength": 64
+    },
+    "Name": "gto-trainer/flask-secret"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/FlaskSecret/Resource"
+   }
+  },
+  "GtoDbSubnetGroup445B002D": {
+   "Type": "AWS::RDS::DBSubnetGroup",
+   "Properties": {
+    "DBSubnetGroupDescription": "Subnet group for GtoDb database",
+    "SubnetIds": [
+     {
+      "Ref": "GtoVpcIsolatedSubnet1Subnet65F22DC1"
+     },
+     {
+      "Ref": "GtoVpcIsolatedSubnet2Subnet13A256E9"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoDb/SubnetGroup/Default"
+   }
+  },
+  "GtoDbB4931191": {
+   "Type": "AWS::RDS::DBInstance",
+   "Properties": {
+    "AllocatedStorage": "20",
+    "BackupRetentionPeriod": 7,
+    "CopyTagsToSnapshot": true,
+    "DBInstanceClass": "db.t3.micro",
+    "DBName": "gto_trainer",
+    "DBSubnetGroupName": {
+     "Ref": "GtoDbSubnetGroup445B002D"
+    },
+    "DeletionProtection": false,
+    "Engine": "postgres",
+    "EngineVersion": "15",
+    "MasterUserPassword": {
+     "Fn::Join": [
+      "",
+      [
+       "{{resolve:secretsmanager:",
+       {
+        "Ref": "DbSecret685A0FA5"
+       },
+       ":SecretString:password::}}"
+      ]
+     ]
+    },
+    "MasterUsername": {
+     "Fn::Join": [
+      "",
+      [
+       "{{resolve:secretsmanager:",
+       {
+        "Ref": "DbSecret685A0FA5"
+       },
+       ":SecretString:username::}}"
+      ]
+     ]
+    },
+    "PubliclyAccessible": false,
+    "StorageType": "gp2",
+    "VPCSecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "RdsSg7F9F43B6",
+       "GroupId"
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoDb/Resource"
+   }
+  },
+  "RedisSubnetGroup": {
+   "Type": "AWS::ElastiCache::SubnetGroup",
+   "Properties": {
+    "Description": "Redis subnet group",
+    "SubnetIds": [
+     {
+      "Ref": "GtoVpcIsolatedSubnet1Subnet65F22DC1"
+     },
+     {
+      "Ref": "GtoVpcIsolatedSubnet2Subnet13A256E9"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/RedisSubnetGroup"
+   }
+  },
+  "GtoRedis": {
+   "Type": "AWS::ElastiCache::CacheCluster",
+   "Properties": {
+    "CacheNodeType": "cache.t3.micro",
+    "CacheSubnetGroupName": {
+     "Ref": "RedisSubnetGroup"
+    },
+    "Engine": "redis",
+    "NumCacheNodes": 1,
+    "VpcSecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "RedisSgFB48DCCD",
+       "GroupId"
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoRedis"
+   }
+  },
+  "GtoRepoF3145216": {
+   "Type": "AWS::ECR::Repository",
+   "Properties": {
+    "LifecyclePolicy": {
+     "LifecyclePolicyText": "{\"rules\":[{\"rulePriority\":1,\"selection\":{\"tagStatus\":\"any\",\"countType\":\"imageCountMoreThan\",\"countNumber\":5},\"action\":{\"type\":\"expire\"}}]}"
+    },
+    "RepositoryName": "gto-trainer"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoRepo/Resource"
+   }
+  },
+  "GtoClusterC0252256": {
+   "Type": "AWS::ECS::Cluster",
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoCluster/Resource"
+   }
+  },
+  "TaskRole30FC0FBB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/TaskRole/Resource"
+   }
+  },
+  "TaskRoleDefaultPolicy07FC53DE": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "DbSecret685A0FA5"
+       }
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "JwtSecretB8834B39"
+       }
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "FlaskSecretDB73E49F"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "TaskRoleDefaultPolicy07FC53DE",
+    "Roles": [
+     {
+      "Ref": "TaskRole30FC0FBB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/TaskRole/DefaultPolicy/Resource"
+   }
+  },
+  "GtoTaskDef0F931562": {
+   "Type": "AWS::ECS::TaskDefinition",
+   "Properties": {
+    "ContainerDefinitions": [
+     {
+      "Environment": [
+       {
+        "Name": "FLASK_ENV",
+        "Value": "production"
+       },
+       {
+        "Name": "EQUITY_SIMULATIONS",
+        "Value": "1500"
+       }
+      ],
+      "Essential": true,
+      "HealthCheck": {
+       "Command": [
+        "CMD-SHELL",
+        "curl -f http://localhost:8000/api/health || exit 1"
+       ],
+       "Interval": 30,
+       "Retries": 3,
+       "Timeout": 5
+      },
+      "Image": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Fn::Select": [
+           4,
+           {
+            "Fn::Split": [
+             ":",
+             {
+              "Fn::GetAtt": [
+               "GtoRepoF3145216",
+               "Arn"
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         ".dkr.ecr.",
+         {
+          "Fn::Select": [
+           3,
+           {
+            "Fn::Split": [
+             ":",
+             {
+              "Fn::GetAtt": [
+               "GtoRepoF3145216",
+               "Arn"
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         ".",
+         {
+          "Ref": "AWS::URLSuffix"
+         },
+         "/",
+         {
+          "Ref": "GtoRepoF3145216"
+         },
+         ":latest"
+        ]
+       ]
+      },
+      "LogConfiguration": {
+       "LogDriver": "awslogs",
+       "Options": {
+        "awslogs-group": {
+         "Ref": "GtoTaskDefGtoContainerLogGroupA5A226C6"
+        },
+        "awslogs-stream-prefix": "gto-trainer",
+        "awslogs-region": "us-west-1"
+       }
+      },
+      "Name": "GtoContainer",
+      "PortMappings": [
+       {
+        "ContainerPort": 8000,
+        "Protocol": "tcp"
+       }
+      ],
+      "Secrets": [
+       {
+        "Name": "DATABASE_URL",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "DbSecret685A0FA5"
+           },
+           ":database_url::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "REDIS_URL",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "FlaskSecretDB73E49F"
+           },
+           ":redis_url::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "JWT_SECRET",
+        "ValueFrom": {
+         "Ref": "JwtSecretB8834B39"
+        }
+       },
+       {
+        "Name": "SECRET_KEY",
+        "ValueFrom": {
+         "Ref": "FlaskSecretDB73E49F"
+        }
+       }
+      ]
+     }
+    ],
+    "Cpu": "256",
+    "ExecutionRoleArn": {
+     "Fn::GetAtt": [
+      "GtoTaskDefExecutionRoleFE661618",
+      "Arn"
+     ]
+    },
+    "Family": "GtoTrainerStackGtoTaskDefB56D87BD",
+    "Memory": "512",
+    "NetworkMode": "awsvpc",
+    "RequiresCompatibilities": [
+     "FARGATE"
+    ],
+    "TaskRoleArn": {
+     "Fn::GetAtt": [
+      "TaskRole30FC0FBB",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoTaskDef/Resource"
+   }
+  },
+  "GtoTaskDefGtoContainerLogGroupA5A226C6": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoTaskDef/GtoContainer/LogGroup/Resource"
+   }
+  },
+  "GtoTaskDefExecutionRoleFE661618": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoTaskDef/ExecutionRole/Resource"
+   }
+  },
+  "GtoTaskDefExecutionRoleDefaultPolicy6DC4819A": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "GtoRepoF3145216",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": "ecr:GetAuthorizationToken",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "GtoTaskDefGtoContainerLogGroupA5A226C6",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "DbSecret685A0FA5"
+       }
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "FlaskSecretDB73E49F"
+       }
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "JwtSecretB8834B39"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GtoTaskDefExecutionRoleDefaultPolicy6DC4819A",
+    "Roles": [
+     {
+      "Ref": "GtoTaskDefExecutionRoleFE661618"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoTaskDef/ExecutionRole/DefaultPolicy/Resource"
+   }
+  },
+  "GtoServiceLB1E31C930": {
+   "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+   "Properties": {
+    "LoadBalancerAttributes": [
+     {
+      "Key": "deletion_protection.enabled",
+      "Value": "false"
+     }
+    ],
+    "Scheme": "internet-facing",
+    "SecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "GtoServiceLBSecurityGroup57AE73AE",
+       "GroupId"
+      ]
+     }
+    ],
+    "Subnets": [
+     {
+      "Ref": "GtoVpcPublicSubnet1SubnetE97BF2CD"
+     },
+     {
+      "Ref": "GtoVpcPublicSubnet2SubnetD56D10AD"
+     }
+    ],
+    "Type": "application"
+   },
+   "DependsOn": [
+    "GtoVpcPublicSubnet1DefaultRoute3C88502B",
+    "GtoVpcPublicSubnet1RouteTableAssociationC1A61494",
+    "GtoVpcPublicSubnet2DefaultRoute2AE6E361",
+    "GtoVpcPublicSubnet2RouteTableAssociation7C061496"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoService/LB/Resource"
+   }
+  },
+  "GtoServiceLBSecurityGroup57AE73AE": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatically created Security Group for ELB GtoTrainerStackGtoServiceLB4CEEC1B6",
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow from anyone on port 80",
+      "FromPort": 80,
+      "IpProtocol": "tcp",
+      "ToPort": 80
+     }
+    ],
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoService/LB/SecurityGroup/Resource"
+   }
+  },
+  "GtoServiceLBSecurityGrouptoGtoTrainerStackEcsSg31704291800041706B5E": {
+   "Type": "AWS::EC2::SecurityGroupEgress",
+   "Properties": {
+    "Description": "Load balancer to target",
+    "DestinationSecurityGroupId": {
+     "Fn::GetAtt": [
+      "EcsSg17B4B0B3",
+      "GroupId"
+     ]
+    },
+    "FromPort": 8000,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "GtoServiceLBSecurityGroup57AE73AE",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "ToPort": 8000
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoService/LB/SecurityGroup/to GtoTrainerStackEcsSg31704291:8000"
+   }
+  },
+  "GtoServiceLBPublicListenerB0333CAA": {
+   "Type": "AWS::ElasticLoadBalancingV2::Listener",
+   "Properties": {
+    "DefaultActions": [
+     {
+      "TargetGroupArn": {
+       "Ref": "GtoServiceLBPublicListenerECSGroup27E04FDF"
+      },
+      "Type": "forward"
+     }
+    ],
+    "LoadBalancerArn": {
+     "Ref": "GtoServiceLB1E31C930"
+    },
+    "Port": 80,
+    "Protocol": "HTTP"
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoService/LB/PublicListener/Resource"
+   }
+  },
+  "GtoServiceLBPublicListenerECSGroup27E04FDF": {
+   "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+   "Properties": {
+    "HealthCheckIntervalSeconds": 30,
+    "HealthCheckPath": "/api/health",
+    "HealthCheckTimeoutSeconds": 5,
+    "HealthyThresholdCount": 2,
+    "Matcher": {
+     "HttpCode": "200"
+    },
+    "Port": 80,
+    "Protocol": "HTTP",
+    "TargetGroupAttributes": [
+     {
+      "Key": "stickiness.enabled",
+      "Value": "false"
+     }
+    ],
+    "TargetType": "ip",
+    "UnhealthyThresholdCount": 3,
+    "VpcId": {
+     "Ref": "GtoVpcECE154C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoService/LB/PublicListener/ECSGroup/Resource"
+   }
+  },
+  "GtoServiceB94CE788": {
+   "Type": "AWS::ECS::Service",
+   "Properties": {
+    "Cluster": {
+     "Ref": "GtoClusterC0252256"
+    },
+    "DeploymentConfiguration": {
+     "Alarms": {
+      "AlarmNames": [],
+      "Enable": false,
+      "Rollback": false
+     },
+     "MaximumPercent": 200,
+     "MinimumHealthyPercent": 50
+    },
+    "DesiredCount": 1,
+    "EnableECSManagedTags": false,
+    "HealthCheckGracePeriodSeconds": 60,
+    "LaunchType": "FARGATE",
+    "LoadBalancers": [
+     {
+      "ContainerName": "GtoContainer",
+      "ContainerPort": 8000,
+      "TargetGroupArn": {
+       "Ref": "GtoServiceLBPublicListenerECSGroup27E04FDF"
+      }
+     }
+    ],
+    "NetworkConfiguration": {
+     "AwsvpcConfiguration": {
+      "AssignPublicIp": "DISABLED",
+      "SecurityGroups": [
+       {
+        "Fn::GetAtt": [
+         "EcsSg17B4B0B3",
+         "GroupId"
+        ]
+       }
+      ],
+      "Subnets": [
+       {
+        "Ref": "GtoVpcPrivateSubnet1Subnet97AD74A4"
+       },
+       {
+        "Ref": "GtoVpcPrivateSubnet2Subnet1774643F"
+       }
+      ]
+     }
+    },
+    "TaskDefinition": {
+     "Ref": "GtoTaskDef0F931562"
+    }
+   },
+   "DependsOn": [
+    "GtoServiceLBPublicListenerECSGroup27E04FDF",
+    "GtoServiceLBPublicListenerB0333CAA",
+    "TaskRoleDefaultPolicy07FC53DE",
+    "TaskRole30FC0FBB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoService/Service/Service"
+   }
+  },
+  "GtoServiceTaskCountTargetED7E68CE": {
+   "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+   "Properties": {
+    "MaxCapacity": 3,
+    "MinCapacity": 1,
+    "ResourceId": {
+     "Fn::Join": [
+      "",
+      [
+       "service/",
+       {
+        "Ref": "GtoClusterC0252256"
+       },
+       "/",
+       {
+        "Fn::GetAtt": [
+         "GtoServiceB94CE788",
+         "Name"
+        ]
+       }
+      ]
+     ]
+    },
+    "RoleARN": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":iam::020423264711:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService"
+      ]
+     ]
+    },
+    "ScalableDimension": "ecs:service:DesiredCount",
+    "ServiceNamespace": "ecs"
+   },
+   "DependsOn": [
+    "TaskRoleDefaultPolicy07FC53DE",
+    "TaskRole30FC0FBB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoService/Service/TaskCount/Target/Resource"
+   }
+  },
+  "GtoServiceTaskCountTargetCpuScaling10805468": {
+   "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+   "Properties": {
+    "PolicyName": "GtoTrainerStackGtoServiceTaskCountTargetCpuScalingCFE916DE",
+    "PolicyType": "TargetTrackingScaling",
+    "ScalingTargetId": {
+     "Ref": "GtoServiceTaskCountTargetED7E68CE"
+    },
+    "TargetTrackingScalingPolicyConfiguration": {
+     "PredefinedMetricSpecification": {
+      "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+     },
+     "ScaleInCooldown": 60,
+     "ScaleOutCooldown": 60,
+     "TargetValue": 70
+    }
+   },
+   "DependsOn": [
+    "TaskRoleDefaultPolicy07FC53DE",
+    "TaskRole30FC0FBB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/GtoService/Service/TaskCount/Target/CpuScaling/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/31S0W7bMAz8lr4rWpeiH5AmXRGg6Iw46GtBK6zDRZEMiUoQCP73QZZju+mwJx6PR5s6ci7nj/fy/g7OfqZ2h5mmSsaSQR0EnP1HRDWX8b1RYvlp3oulKEKlSZWhMsiJG9HGBsYtVBpHfuQW3ltFwGTNIE7geV2k8Ab8AoxnuIjC0QkYxw+vDaMzOAjyJH22YAa1P6JhUaIKjvjy4mxouhn+S6xN7dD7b/xzR7fCo3LI/ggGanQyll3eyxPKYQuuRp6MMQhuK61wOy/jChgq8Lg2nsEoFPmlw5Crp2/EVdoK1OCZFKg9yjjYPEiXqbDUwTO6VqByMm6wsZ7Yus64MUtlL2Mv7pp7+AtcDWlt/rDCTzJ0XdotYw0DGXQTru8t0Z1I5UPoYalAp0NIH1nakOwgOMq4sflgulhYTaobNKNWaFt7GV9tPbzxirsHfDTA6Tq8XDSNJtUd2KuF3RPo5NjuZqDeP21hV3UKMvVpLuO/u13+3ySf6sgzml5zxZN6Xv8w9iRtBYwyCGy9Ak2mlnE0KYk7+74yOWwdqAOZusx9o2tfiLYVG/Q2uLyI34GbwK0oLry35seD/DmXj3d/PNHMBcN0RLnJ8S8SdoaTFAQAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "GtoTrainerStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "GtoServiceLoadBalancerDNS67F6FD2F": {
+   "Value": {
+    "Fn::GetAtt": [
+     "GtoServiceLB1E31C930",
+     "DNSName"
+    ]
+   }
+  },
+  "GtoServiceServiceURL4A15357D": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "http://",
+      {
+       "Fn::GetAtt": [
+        "GtoServiceLB1E31C930",
+        "DNSName"
+       ]
+      }
+     ]
+    ]
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

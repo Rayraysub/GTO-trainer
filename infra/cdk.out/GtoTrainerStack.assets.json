@@ -1,0 +1,21 @@
+{
+  "version": "53.0.0",
+  "files": {
+    "8babdb04b4ae5376231479d6ffbe208c3a35855bacd0e7272f1c98e8840dca08": {
+      "displayName": "GtoTrainerStack Template",
+      "source": {
+        "path": "GtoTrainerStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "020423264711-us-west-1-a63ea44e": {
+          "bucketName": "cdk-hnb659fds-assets-020423264711-us-west-1",
+          "objectKey": "8babdb04b4ae5376231479d6ffbe208c3a35855bacd0e7272f1c98e8840dca08.json",
+          "region": "us-west-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::020423264711:role/cdk-hnb659fds-file-publishing-role-020423264711-us-west-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

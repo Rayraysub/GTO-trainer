@@ -122,7 +122,7 @@ class GtoTrainerStack(Stack):
             credentials=rds.Credentials.from_secret(db_secret),
             database_name="gto_trainer",
             allocated_storage=20,
-            backup_retention=Duration.days(7),
+            backup_retention=Duration.days(0),
             deletion_protection=False,           # 开发阶段方便删除
             removal_policy=RemovalPolicy.DESTROY,
         )
