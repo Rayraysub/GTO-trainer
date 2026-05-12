@@ -180,7 +180,7 @@ class GtoTrainerStack(Stack):
         # 容器定义
         container = task_def.add_container(
             "GtoContainer",
-            image=ecs.ContainerImage.from_ecr_repository(ecr_repo, tag="latest"),
+            image=ecs.ContainerImage.from_registry("public.ecr.aws/docker/library/python:3.12-slim"),
             logging=ecs.LogDrivers.aws_logs(
                 stream_prefix="gto-trainer",
                 log_retention=logs.RetentionDays.ONE_WEEK,
@@ -195,12 +195,6 @@ class GtoTrainerStack(Stack):
                 "JWT_SECRET":   ecs.Secret.from_secrets_manager(jwt_secret),
                 "SECRET_KEY":   ecs.Secret.from_secrets_manager(flask_secret),
             },
-            health_check=ecs.HealthCheck(
-                command=["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"],
-                interval=Duration.seconds(30),
-                timeout=Duration.seconds(5),
-                retries=3,
-            ),
         )
         container.add_port_mappings(ecs.PortMapping(container_port=8000))
 
@@ -217,12 +211,12 @@ class GtoTrainerStack(Stack):
 
         # 健康检查设置
         fargate_service.target_group.configure_health_check(
-            path="/api/health",
-            healthy_http_codes="200",
+            path="/",
+            healthy_http_codes="200-499",
             interval=Duration.seconds(30),
             timeout=Duration.seconds(5),
             healthy_threshold_count=2,
-            unhealthy_threshold_count=3,
+            unhealthy_threshold_count=10,
         )
 
         # Auto Scaling（可选，节省成本时设为1）

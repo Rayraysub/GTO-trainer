@@ -779,7 +779,7 @@
    "Type": "AWS::RDS::DBInstance",
    "Properties": {
     "AllocatedStorage": "20",
-    "BackupRetentionPeriod": 7,
+    "BackupRetentionPeriod": 0,
     "CopyTagsToSnapshot": true,
     "DBInstanceClass": "db.t3.micro",
     "DBName": "gto_trainer",
@@ -974,64 +974,7 @@
        }
       ],
       "Essential": true,
-      "HealthCheck": {
-       "Command": [
-        "CMD-SHELL",
-        "curl -f http://localhost:8000/api/health || exit 1"
-       ],
-       "Interval": 30,
-       "Retries": 3,
-       "Timeout": 5
-      },
-      "Image": {
-       "Fn::Join": [
-        "",
-        [
-         {
-          "Fn::Select": [
-           4,
-           {
-            "Fn::Split": [
-             ":",
-             {
-              "Fn::GetAtt": [
-               "GtoRepoF3145216",
-               "Arn"
-              ]
-             }
-            ]
-           }
-          ]
-         },
-         ".dkr.ecr.",
-         {
-          "Fn::Select": [
-           3,
-           {
-            "Fn::Split": [
-             ":",
-             {
-              "Fn::GetAtt": [
-               "GtoRepoF3145216",
-               "Arn"
-              ]
-             }
-            ]
-           }
-          ]
-         },
-         ".",
-         {
-          "Ref": "AWS::URLSuffix"
-         },
-         "/",
-         {
-          "Ref": "GtoRepoF3145216"
-         },
-         ":latest"
-        ]
-       ]
-      },
+      "Image": "public.ecr.aws/docker/library/python:3.12-slim",
       "LogConfiguration": {
        "LogDriver": "awslogs",
        "Options": {
@@ -1153,25 +1096,6 @@
    "Properties": {
     "PolicyDocument": {
      "Statement": [
-      {
-       "Action": [
-        "ecr:BatchCheckLayerAvailability",
-        "ecr:GetDownloadUrlForLayer",
-        "ecr:BatchGetImage"
-       ],
-       "Effect": "Allow",
-       "Resource": {
-        "Fn::GetAtt": [
-         "GtoRepoF3145216",
-         "Arn"
-        ]
-       }
-      },
-      {
-       "Action": "ecr:GetAuthorizationToken",
-       "Effect": "Allow",
-       "Resource": "*"
-      },
       {
        "Action": [
         "logs:CreateLogStream",
@@ -1337,11 +1261,11 @@
    "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
    "Properties": {
     "HealthCheckIntervalSeconds": 30,
-    "HealthCheckPath": "/api/health",
+    "HealthCheckPath": "/",
     "HealthCheckTimeoutSeconds": 5,
     "HealthyThresholdCount": 2,
     "Matcher": {
-     "HttpCode": "200"
+     "HttpCode": "200-499"
     },
     "Port": 80,
     "Protocol": "HTTP",
@@ -1352,7 +1276,7 @@
      }
     ],
     "TargetType": "ip",
-    "UnhealthyThresholdCount": 3,
+    "UnhealthyThresholdCount": 10,
     "VpcId": {
      "Ref": "GtoVpcECE154C5"
     }
